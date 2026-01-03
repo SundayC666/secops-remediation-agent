@@ -119,8 +119,11 @@ python test_imports.py
 Create a `.env` file in the project root:
 
 ```bash
-# Copy the example file
+# Windows (Command Prompt)
 copy .env.example .env
+
+# macOS / Linux / Bash
+cp .env.example .env
 ```
 
 Edit `.env` with your settings:

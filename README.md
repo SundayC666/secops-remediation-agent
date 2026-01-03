@@ -1,15 +1,18 @@
-# LLM-Based Security Chatbot
+# SecOps Remediation Agent
 
-An AI-powered security chatbot that provides vulnerability analysis and security recommendations using Retrieval-Augmented Generation (RAG) and Large Language Models (LLMs).
+![Python](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python)
+![Security](https://img.shields.io/badge/Security-NIST%20NVD-red?logo=shield)
+![AI](https://img.shields.io/badge/AI-RAG%20%2B%20LLM-purple?logo=openai)
+![License](https://img.shields.io/badge/License-MIT-green)
+
+> **An automated security assistant that integrates RAG, NIST CVE data, and LLMs to provide actionable vulnerability analysis and remediation scripts.**
 
 ## 🎯 Project Overview
 
-This chatbot analyzes security risks based on:
-- Real-time CVE (Common Vulnerabilities and Exposures) data from NIST National Vulnerability Database
-- Infrastructure details (OS versions, services, applications)
-- Security best practices and threat intelligence
-
-The system uses RAG to retrieve relevant security information and generates contextual responses using LLMs.
+The **SecOps Remediation Agent** is designed to bridge the gap between vulnerability detection and remediation. Unlike standard chatbots, this agent focuses on:
+- **Real-time Intelligence**: Fetching live CVE data from NIST.
+- **Context Awareness**: Using RAG (Retrieval-Augmented Generation) to map vulnerabilities to specific infrastructure context.
+- **Actionable Output**: Generating structured JSON data and mitigation scripts for immediate use.
 
 ## ✨ Features
 

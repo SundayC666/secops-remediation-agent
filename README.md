@@ -61,8 +61,11 @@ For a deep dive into the system architecture, implementation details, and perfor
 ### 1. Clone/Download the Project
 
 ```bash
+# Clone the repository
+git clone [https://github.com/SundayC666/secops-remediation-agent.git](https://github.com/SundayC666/secops-remediation-agent.git)
+
 # Navigate to your project directory
-cd security_chatbot
+cd secops-remediation-agent
 ```
 
 ### 2. Create Virtual Environment (Recommended)

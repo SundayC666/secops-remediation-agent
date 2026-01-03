@@ -101,7 +101,7 @@ The script will automatically:
 pip install -r requirements.txt
 ```
 
-**Note for Python 3.13 users:** If you encounter issues with `faiss-cpu` or `langchain`, the requirements.txt has been updated with compatible versions. If problems persist, see `INSTALLATION_FIX.md` for detailed solutions.
+**Note for Python 3.13 users:** If you encounter issues with `faiss-cpu` or `langchain`, the requirements.txt has been updated with compatible versions. If problems persist, see **INSTALL.md** for troubleshooting steps.
 
 **Verify installation:**
 ```bash
@@ -191,19 +191,26 @@ The application will open in your browser at `http://localhost:8501`
 ## 📁 Project Structure
 
 ```
-security_chatbot/
-├── app.py                  # Streamlit web interface
-├── chatbot.py             # Main chatbot logic and LLM integration
-├── rag_pipeline.py        # RAG implementation with FAISS
-├── cve_collector.py       # CVE data collection from NVD API
-├── requirements.txt       # Python dependencies
-├── .env.example          # Environment variables template
-├── .env                  # Your environment configuration (create this)
-├── data/                 # CVE data storage (created automatically)
+secops-remediation-agent/
+├── docs/                        # Documentation & Technical Details
+│   ├── ARCHITECTURE.md          # High-level system design
+│   └── TECHNICAL_DETAILS.md     # RAG implementation & evaluation metrics
+├── data/                        # Generated CVE data storage
 │   └── cve_data.json
-└── vector_store/         # FAISS index storage (created automatically)
-    ├── faiss_index.bin
-    └── documents.pkl
+├── vector_store/                # Generated FAISS index storage
+│   ├── faiss_index.bin
+│   └── documents.pkl
+├── app.py                       # Streamlit web interface entry point
+├── chatbot.py                   # Core agent logic & LLM integration
+├── cve_collector.py             # NIST NVD data collection module
+├── rag_pipeline.py              # RAG engine & Vector Store management
+├── install.bat                  # One-click installer for Windows
+├── install.sh                   # Installer for Linux/macOS
+├── requirements.txt             # Project dependencies
+├── test_chatbot.py              # Comprehensive test suite
+├── test_imports.py              # Installation verification script
+├── .env.example                 # Environment variables template
+└── .env                         # Your configuration (create this)
 ```
 
 ## 🔧 Testing
@@ -246,7 +253,7 @@ To fetch latest CVE data:
 
 ### Package Installation Issues
 If you encounter `faiss-cpu` version errors:
-- See `INSTALLATION_FIX.md` for detailed solutions
+- See **INSTALL.md** for detailed solutions
 - Run `python test_imports.py` to verify installation
 - Consider using Python 3.11 or 3.12 if Python 3.13 has issues
 
@@ -314,19 +321,18 @@ cves = collector.fetch_recent_cves(
 
 ## 🤝 Contributing
 
-This is an academic project. For improvements:
-1. Test thoroughly
-2. Document changes
-3. Maintain code quality
-4. Cite any external resources used
+Contributions are welcome! If you have suggestions for improvements or bug fixes, please feel free to fork the repository and submit a Pull Request.
 
-## 📄 License
-
-This project is created for educational purposes as part of a university course assignment.
+1.  **Fork** the repository
+2.  **Create** your feature branch (`git checkout -b feature/NewFeature`)
+3.  **Commit** your changes (`git commit -m 'Add some NewFeature'`)
+4.  **Push** to the branch (`git push origin feature/NewFeature`)
+5.  **Open** a Pull Request
 
 ## 👨‍💻 Author
 
-Sunday Chen
+**Sunday Chen**
+- [LinkedIn](https://www.linkedin.com/in/sunday-chen-060454356/)
 
 ## 🙏 Acknowledgments
 
@@ -337,20 +343,7 @@ Sunday Chen
 - Facebook Research for FAISS
 - Streamlit for the web framework
 
-- ## 🤖 AI Assistance Acknowledgment
+## 📄 License
 
-This project was developed with the assistance of AI tools:
+This project is open-source and available under the [MIT License](LICENSE).
 
-### Code Development
-- **Tool**: Claude 4.5 Sonnet (Anthropic)
-- **Date**: October 22, 2025
-- **Contribution**: Initial codebase generation including RAG pipeline, CVE collector, chatbot interface, and web application
-- **Human Modifications**: 
-  - Resolved package dependency conflicts (Python 3.13 compatibility)
-  - Implemented OpenAI API integration
-  - Optimized local LLM performance (Ollama)
-  - Added comprehensive error handling and testing suite
-  - Created installation automation scripts (`install.bat`, `install.sh`)
-  - Extensive debugging and optimization
-
-> **Note**: All AI-generated content was thoroughly reviewed, tested, and significantly modified to meet project requirements and ensure functionality.

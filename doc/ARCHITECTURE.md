@@ -1,74 +1,74 @@
-# Security Chatbot - System Architecture
+# SecOps Remediation Agent - System Architecture
 
 ## High-Level Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                         USER INTERFACE                          │
-│                      (Streamlit Web App)                        │
-│  - Query Input                                                  │
-│  - Chat Display                                                 │
+│                          USER INTERFACE                         │
+│                       (Streamlit Web App)                       │
+│  - Vulnerability Dashboard                                      │
+│  - Chat / Remediation Interface                                 │
 │  - Configuration Panel                                          │
 │  - Knowledge Base Management                                    │
 └────────────────────────────┬────────────────────────────────────┘
                              │
                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                      SECURITY CHATBOT                           │
+│                     SECOPS AGENT ENGINE                         │
 │                        (chatbot.py)                             │
-│  - Query Processing                                             │
+│  - Query Processing & Intent Recognition                        │
 │  - Context Integration                                          │
-│  - Response Generation                                          │
-│  - Source Attribution                                           │
+│  - Remediation Logic                                            │
+│  - Structured Output Parsing (JSON)                             │
 └──────────────┬────────────────────────────┬─────────────────────┘
                │                            │
                ▼                            ▼
 ┌──────────────────────────┐    ┌──────────────────────────┐
-│     RAG PIPELINE         │    │    LLM INTERFACE         │
-│   (rag_pipeline.py)      │    │    (chatbot.py)          │
+│      RAG PIPELINE        │    │     LLM INTERFACE        │
+│    (rag_pipeline.py)     │    │     (chatbot.py)         │
 │                          │    │                          │
-│  - Text Chunking         │    │  Options:                │
-│  - Embedding Generation  │    │  1. OpenAI GPT-3.5      │
-│  - Vector Indexing       │    │  2. Ollama Llama 2      │
+│  - Text Chunking         │    │  Strategy Pattern:       │
+│  - Embedding Generation  │    │  1. OpenAI (Cloud)       │
+│  - Vector Indexing       │    │  2. Ollama (Local)       │
 │  - Similarity Search     │    │                          │
 └───────────┬──────────────┘    └──────────────────────────┘
             │
             ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                    KNOWLEDGE BASE                               │
+│                        KNOWLEDGE BASE                           │
 │                                                                 │
-│  ┌─────────────────────┐        ┌─────────────────────┐       │
-│  │  VECTOR STORE       │        │   CVE DATABASE      │       │
-│  │  (FAISS Index)      │        │   (cve_collector.py)│       │
-│  │                     │        │                     │       │
-│  │  - Document Chunks  │        │  - CVE Records      │       │
-│  │  - Embeddings       │        │  - CVSS Scores      │       │
-│  │  - Metadata         │        │  - Descriptions     │       │
-│  └─────────────────────┘        │  - Affected Products│       │
-│                                  └─────────┬───────────┘       │
-│                                            │                   │
-│  ┌─────────────────────┐                  │                   │
-│  │  INFRASTRUCTURE DB  │                  │                   │
-│  │  (Sample Data)      │                  │                   │
-│  │                     │◄─────────────────┘                   │
-│  │  - Server Configs   │                                      │
-│  │  - OS Versions      │                                      │
-│  │  - Services         │                                      │
-│  │  - Network Info     │                                      │
-│  └─────────────────────┘                                      │
+│  ┌─────────────────────┐        ┌─────────────────────┐         │
+│  │    VECTOR STORE     │        │    CVE DATABASE     │         │
+│  │    (FAISS Index)    │        │   (cve_collector.py)│         │
+│  │                     │        │                     │         │
+│  │  - Document Chunks  │        │  - CVE Records      │         │
+│  │  - Embeddings       │        │  - CVSS Scores      │         │
+│  │  - Metadata         │        │  - Descriptions     │         │
+│  └─────────────────────┘        │  - Affected Products│         │
+│                                 └─────────┬───────────┘         │
+│                                           │                     │
+│  ┌─────────────────────┐                  │                     │
+│  │  INFRASTRUCTURE DB  │                  │                     │
+│  │    (Sample Data)    │                  │                     │
+│  │                     │◄─────────────────┘                     │
+│  │  - Server Configs   │                                        │
+│  │  - OS Versions      │                                        │
+│  │  - Services         │                                        │
+│  │  - Network Info     │                                        │
+│  └─────────────────────┘                                        │
 └─────────────────────────────────────────────────────────────────┘
                              │
                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                    EXTERNAL DATA SOURCES                        │
+│                     EXTERNAL DATA SOURCES                       │
 │                                                                 │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │         NIST National Vulnerability Database             │  │
-│  │              https://nvd.nist.gov/                       │  │
-│  │  - CVE Records                                           │  │
-│  │  - Real-time Updates                                     │  │
-│  │  - RESTful API                                           │  │
-│  └──────────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │          NIST National Vulnerability Database            │   │
+│  │               [https://nvd.nist.gov/](https://nvd.nist.gov/)                      │   │
+│  │  - CVE Records                                           │   │
+│  │  - Real-time Updates                                     │   │
+│  │  - RESTful API                                           │   │
+│  └──────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -76,20 +76,20 @@
 
 ```
 ┌────────────┐
-│   User     │
-│   Query    │
+│    User    │
+│    Query   │
 └─────┬──────┘
       │
       ▼
 ┌─────────────────────────────────────┐
 │  1. Query Embedding                 │
 │     (sentence-transformers)         │
-│     "What are Apache vulns?"        │
+│     "Patch for Apache CVE?"         │
 │            ↓                        │
-│     [0.23, 0.45, 0.12, ...]        │
+│     [0.23, 0.45, 0.12, ...]         │
 └─────────────┬───────────────────────┘
-              │
-              ▼
+      │
+      ▼
 ┌─────────────────────────────────────┐
 │  2. Vector Search (FAISS)           │
 │     - L2 Distance Calculation       │
@@ -97,44 +97,41 @@
 │            ↓                        │
 │     Retrieved Documents:            │
 │     Doc1: CVE-2024-1234 (Score:0.9) │
-│     Doc2: CVE-2024-5678 (Score:0.8) │
-│     Doc3: Apache Config (Score:0.7) │
+│     Doc2: Apache Config (Score:0.8) │
 └─────────────┬───────────────────────┘
-              │
-              ▼
+      │
+      ▼
 ┌─────────────────────────────────────┐
 │  3. Context Assembly                │
 │     Combine:                        │
 │     - User Query                    │
 │     - Retrieved Documents           │
-│     - System Instructions           │
+│     - System Instructions (JSON)    │
 │            ↓                        │
 │     Complete Prompt                 │
 └─────────────┬───────────────────────┘
-              │
-              ▼
+      │
+      ▼
 ┌─────────────────────────────────────┐
 │  4. LLM Generation                  │
 │     (OpenAI GPT-3.5 / Ollama)       │
 │     - Process Context               │
-│     - Generate Response             │
-│     - Extract Sources               │
-│            ↓                        │
-│     Generated Answer + Citations    │
+│     - Generate Remediation Plan     │
+│     - Format as JSON Object         │
 └─────────────┬───────────────────────┘
-              │
-              ▼
+      │
+      ▼
 ┌─────────────────────────────────────┐
-│  5. Response Formatting             │
-│     - Main Response Text            │
-│     - Source Citations (CVE IDs)    │
-│     - Relevance Metadata            │
+│  5. Structured Output Parsing       │
+│     - Extract JSON Data             │
+│     - Generate Patch Script         │
+│     - Format Severity Metrics       │
 └─────────────┬───────────────────────┘
-              │
-              ▼
+      │
+      ▼
 ┌────────────────┐
 │  Display to    │
-│     User       │
+│  User (UI)     │
 └────────────────┘
 ```
 
@@ -153,15 +150,16 @@ app.py (Streamlit UI)
     │       └─→ LLMInterface (OpenAI/Ollama)
     │
     ├─→ Process User Query
-    │   └─→ chatbot.py::SecurityChatbot.chat()
+    │   └─→ chatbot.py::SecOpsAgent.chat()
     │       ├─→ rag_pipeline.py::retrieve()
     │       │   └─→ FAISS similarity search
     │       └─→ LLMInterface::generate_response()
     │           └─→ OpenAI API / Ollama
     │
-    └─→ Display Response
-        ├─→ Response Text
-        └─→ Source Citations
+    └─→ Display Remediation
+        ├─→ Natural Language Response
+        ├─→ Structured Data Table (JSON)
+        └─→ Executable Patch Script
 ```
 
 ## File Dependencies
@@ -170,18 +168,18 @@ app.py (Streamlit UI)
 app.py
   │
   ├── imports chatbot.py
-  │     │
-  │     ├── imports rag_pipeline.py
-  │     │     │
-  │     │     ├── imports sentence_transformers
-  │     │     ├── imports faiss
-  │     │     └── imports langchain
-  │     │
-  │     ├── imports cve_collector.py
-  │     │     │
-  │     │     └── imports requests
-  │     │
-  │     └── imports openai / ollama
+  │      │
+  │      ├── imports rag_pipeline.py
+  │      │      │
+  │      │      ├── imports sentence_transformers
+  │      │      ├── imports faiss
+  │      │      └── imports langchain
+  │      │
+  │      ├── imports cve_collector.py
+  │      │      │
+  │      │      └── imports requests
+  │      │
+  │      └── imports openai / ollama
   │
   └── imports streamlit
 ```
@@ -189,15 +187,15 @@ app.py
 ## Data Storage Structure
 
 ```
-security_chatbot/
+secops-remediation-agent/
 ├── data/                           # CVE data storage
-│   └── cve_data.json              # Fetched CVE records
+│   └── cve_data.json               # Fetched CVE records
 │
 ├── vector_store/                   # FAISS index storage
-│   ├── faiss_index.bin            # Vector index
-│   └── documents.pkl              # Document metadata
+│   ├── faiss_index.bin             # Vector index
+│   └── documents.pkl               # Document metadata
 │
-└── .env                           # Configuration
+└── .env                            # Configuration
     ├── OPENAI_API_KEY
     ├── USE_OLLAMA
     └── NVD_API_KEY (optional)
@@ -216,8 +214,8 @@ Input Document
 │  - Chunk: 800 chars │
 │  - Overlap: 100     │
 └──────┬──────────────┘
-       │
-       ▼
+      │
+      ▼
 ┌─────────────────────┐
 │  Embedding          │
 │  Generation         │
@@ -225,24 +223,24 @@ Input Document
 │  Output: 384-dim    │
 │  vector             │
 └──────┬──────────────┘
-       │
-       ▼
+      │
+      ▼
 ┌─────────────────────┐
 │  FAISS Indexing     │
 │  (IndexFlatL2)      │
 │  - L2 distance      │
 │  - Fast search      │
 └──────┬──────────────┘
-       │
-       ▼
+      │
+      ▼
    Vector Store
    (Persistent)
 ```
 
-## Query Processing Flow
+## Query Processing Flow (Example)
 
 ```
-User Query: "What are Apache vulnerabilities?"
+User Query: "Fix Apache vulnerability CVE-2024-1234"
       │
       ▼
 [Embedding] → [0.12, 0.34, 0.56, ..., 0.78]
@@ -250,41 +248,30 @@ User Query: "What are Apache vulnerabilities?"
       ▼
 [FAISS Search] → Top 5 Similar Vectors
       │
-      ├─→ Doc1: "CVE-2024-1234 affects Apache 2.4.x" (score: 0.89)
-      ├─→ Doc2: "Apache security configuration..." (score: 0.82)
-      ├─→ Doc3: "CVE-2024-5678 Apache DoS..." (score: 0.78)
-      ├─→ Doc4: "Web Server Cluster: Apache 2.4.52" (score: 0.75)
-      └─→ Doc5: "Apache module vulnerabilities..." (score: 0.71)
+      ├─→ Doc1: "CVE-2024-1234 details & fix" (score: 0.92)
+      └─→ Doc2: "Apache 2.4 configuration" (score: 0.85)
       │
       ▼
 [Context Assembly]
       │
-      ├─→ System Prompt: "You are a cybersecurity expert..."
-      ├─→ Context Docs: [Doc1, Doc2, Doc3, Doc4, Doc5]
-      └─→ User Query: "What are Apache vulnerabilities?"
+      ├─→ System Prompt: "You are a SecOps Agent. Output JSON."
+      ├─→ Context Docs: [Doc1, Doc2]
+      └─→ User Query: "Fix Apache..."
       │
       ▼
 [LLM Processing]
       │
-      ├─→ Analyze Context
-      ├─→ Extract Relevant Info
-      ├─→ Generate Response
-      └─→ Add Citations
-      │
       ▼
-[Response]
-"Based on recent CVE data, Apache web servers face several
-critical vulnerabilities:
+[Response Generation]
+"Based on the analysis, here is the remediation plan:"
 
-1. CVE-2024-1234 (CRITICAL - 9.8)
-   - Affects: Apache HTTP Server 2.4.x
-   - Impact: Remote code execution
-   - Recommendation: Upgrade to 2.4.58+
-
-2. CVE-2024-5678 (HIGH - 8.1)
-   ..."
-
-Sources: CVE-2024-1234 (CRITICAL), CVE-2024-5678 (HIGH)
+```json
+{
+  "cve_id": "CVE-2024-1234",
+  "severity": "CRITICAL",
+  "affected_component": "Apache HTTP Server 2.4.x",
+  "mitigation_command": "sudo apt-get update && sudo apt-get install --only-upgrade apache2"
+}
 ```
 
 ## Testing Architecture
@@ -307,10 +294,10 @@ test_chatbot.py
       │       ├─→ OpenAI test
       │       └─→ Ollama test
       │
-      ├─→ Test 4: Chatbot Integration
-      │   └─→ chatbot.py::SecurityChatbot
+      ├─→ Test 4: Agent Logic
+      │   └─→ chatbot.py::SecOpsAgent
       │       ├─→ End-to-end query
-      │       └─→ Response validation
+      │       └─→ JSON output validation
       │
       └─→ Test 5: Evaluation Metrics
           └─→ Calculate precision/recall
@@ -318,29 +305,50 @@ test_chatbot.py
 
 ## Technology Stack Layers
 
+The system is built on a modern AI engineering stack, separated into logical layers to ensure modularity and maintainability.
+
+```mermaid
+graph TD
+    subgraph Presentation ["💻 Presentation Layer"]
+        UI[Streamlit Web Interface]
+        Config[Configuration Panel]
+    end
+
+    subgraph Application ["⚙️ Application Layer"]
+        Logic[Agent Core Logic]
+        RAG[RAG Pipeline Controller]
+        Collector[CVE Data Collector]
+    end
+
+    subgraph Framework ["🛠️ Framework Layer"]
+        LC[LangChain]
+        ST[Sentence-Transformers]
+        Req[Requests / Pandas]
+    end
+
+    subgraph Model ["🧠 Model Layer"]
+        LLM[LLM Engine<br/>(OpenAI / Ollama)]
+        Embed[Embedding Model<br/>(all-MiniLM-L6-v2)]
+    end
+
+    subgraph Data ["💾 Data Layer"]
+        VecDB[(FAISS Vector Store)]
+        NVD[(NIST CVE Database)]
+        Env[Environment Variables]
+    end
+
+    Presentation --> Application
+    Application --> Framework
+    Framework --> Model
+    Model --> Data
 ```
-┌──────────────────────────────────────────┐
-│         Presentation Layer               │
-│         (Streamlit)                      │
-└──────────────┬───────────────────────────┘
-               │
-┌──────────────▼───────────────────────────┐
-│         Application Layer                │
-│    (chatbot.py, rag_pipeline.py)        │
-└──────────────┬───────────────────────────┘
-               │
-┌──────────────▼───────────────────────────┐
-│         Framework Layer                  │
-│  (LangChain, sentence-transformers)     │
-└──────────────┬───────────────────────────┘
-               │
-┌──────────────▼───────────────────────────┐
-│         Model Layer                      │
-│    (OpenAI API, Ollama, FAISS)          │
-└──────────────┬───────────────────────────┘
-               │
-┌──────────────▼───────────────────────────┐
-│         Data Layer                       │
-│  (CVE Database, Vector Store, Files)    │
-└──────────────────────────────────────────┘
-```
+
+### Stack Details
+
+| Layer | Component | Purpose |
+| :--- | :--- | :--- |
+| **Presentation** | **Streamlit** | Provides the interactive web UI, chat history display, and sidebar controls. |
+| **Application** | **Python 3.11+** | Core business logic, intent routing, and coordination between components (`chatbot.py`). |
+| **Framework** | **LangChain** | Manages the chain of thought, prompt templates, and RAG context injection. |
+| **Model** | **OpenAI / Ollama** | Handles the generation of natural language responses and remediation scripts. |
+| **Data** | **FAISS & NIST** | Stores high-dimensional vector embeddings and raw vulnerability JSON data. |

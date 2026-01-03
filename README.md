@@ -39,6 +39,13 @@ User Query → Streamlit UI → Security Chatbot
                         Final Answer
 ```
 
+## 📚 Documentation
+
+For a deep dive into the system architecture, implementation details, and performance metrics, please refer to the documentation in the `docs/` folder:
+
+* **[Technical Details & Architecture](docs/TECHNICAL_DETAILS.md)**: Detailed breakdown of the RAG pipeline, data preprocessing, and evaluation results.
+* **[Architecture Diagram](docs/ARCHITECTURE.md)**: High-level system design.
+
 ## 📋 Prerequisites
 
 - Python 3.13.7
@@ -223,43 +230,6 @@ The system includes sample infrastructure data for testing:
 - Application Server (Windows Server, .NET, IIS)
 - Network Infrastructure (Cisco firewalls, routers)
 
-## 📊 Technical Details
-
-### Data Sources
-- **CVE Data**: NIST National Vulnerability Database (NVD) API
-- **Infrastructure**: Sample data included (can be customized)
-- **Update Frequency**: Can be refreshed on-demand via UI
-
-### RAG Pipeline
-- **Embedding Model**: `all-MiniLM-L6-v2` (HuggingFace)
-- **Vector Store**: FAISS (Facebook AI Similarity Search)
-- **Chunk Size**: 800 characters with 100-character overlap
-- **Retrieval**: Top-5 most relevant documents
-
-### LLM Configuration
-- **Temperature**: 0.3 (for more factual responses)
-- **Max Tokens**: 1000
-- **System Prompt**: Configured as cybersecurity expert
-
-## 🎯 Evaluation Metrics
-
-The system can be evaluated on:
-
-1. **Retrieval Quality**
-   - Relevance of retrieved documents
-   - Coverage of relevant CVEs
-   - Precision of semantic search
-
-2. **Response Quality**
-   - Accuracy of vulnerability assessments
-   - Actionability of recommendations
-   - Citation of sources
-
-3. **Performance**
-   - Query response time
-   - Embedding generation speed
-   - Knowledge base update time
-
 ## 🔄 Updating the Knowledge Base
 
 To fetch latest CVE data:
@@ -306,15 +276,6 @@ If you encounter `faiss-cpu` version errors:
 - [LangChain Documentation](https://python.langchain.com/)
 - [FAISS Documentation](https://github.com/facebookresearch/faiss)
 - [Sentence Transformers](https://www.sbert.net/)
-
-## 🎓 Learning Objectives Achieved
-
-1. ✅ Data Collection: Automated CVE fetching from NVD API
-2. ✅ Knowledge Base Construction: Vector embeddings with FAISS
-3. ✅ LLM Integration: Support for both API and local models
-4. ✅ RAG Implementation: Retrieval-augmented generation pipeline
-5. ✅ User Interface: Interactive Streamlit web application
-6. ✅ Testing & Validation: Sample scenarios and test cases
 
 ## 📝 Customization
 

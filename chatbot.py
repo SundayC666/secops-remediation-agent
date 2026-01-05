@@ -4,40 +4,44 @@ Supports OpenAI API and Ollama (local LLM)
 """
 
 import os
-from typing import List, Dict, Optional
 import logging
+import requests
+from typing import List, Dict, Optional, Union
 from dotenv import load_dotenv
 
-# OpenAI
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Load environment variables
+load_dotenv()
+
+# Check available libraries
 try:
     from openai import OpenAI
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
+    logger.warning("openai library not found. OpenAI features will be disabled.")
 
-# Ollama (local)
 try:
     import requests
     OLLAMA_AVAILABLE = True
 except ImportError:
     OLLAMA_AVAILABLE = False
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-load_dotenv()
+    logger.warning("requests library not found. Ollama features will be disabled.")
 
 
 class LLMInterface:
     """Interface for interacting with LLMs"""
     
-    def __init__(self, use_ollama: bool = False, model: str = "gpt-3.5-turbo"):
+    def __init__(self, use_ollama: bool = False, model: str = "gpt-4o-mini"):
         """
         Initialize LLM interface
         
         Args:
             use_ollama: If True, use Ollama local LLM instead of OpenAI
-            model: Model name (gpt-3.5-turbo for OpenAI, llama2 for Ollama)
+            model: Model name (gpt-4o-mini for OpenAI, llama2 for Ollama)
         """
         self.use_ollama = use_ollama
         self.model = model
@@ -69,7 +73,7 @@ class LLMInterface:
                 "prompt": "Hello",
                 "stream": False,
                 "options": {
-                    "num_predict": 10  # 只生成 10 個 token
+                    "num_predict": 10  # Generate only 10 tokens
                 }
             }
             
@@ -102,10 +106,18 @@ class LLMInterface:
     def _generate_openai(self, prompt: str, max_tokens: int) -> str:
         """Generate response using OpenAI API"""
         try:
+            # IMPORTANT: System prompt engineered to reduce hallucinations
+            system_instruction = (
+                "You are a SecOps Remediation Agent. "
+                "You must answer the user's question BASED ONLY on the provided Context (Retrieved CVE Data). "
+                "If the answer is not in the context, state that you don't know. "
+                "DO NOT fabricate information."
+            )
+
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": "You are a cybersecurity expert assistant. Provide accurate, actionable security advice."},
+                    {"role": "system", "content": system_instruction},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=max_tokens,
@@ -222,8 +234,8 @@ Provide a clear, actionable response based on cybersecurity best practices."""
                 context_text += f"\n--- Infrastructure Information {i} ---\n"
                 context_text += f"{doc['content']}\n"
         
-        # Build full prompt
-        prompt = f"""You are a cybersecurity expert assistant. Use the following context information to answer the security question.
+        # Build full prompt with ANTI-HALLUCINATION instructions
+        prompt = f"""You are a SecOps Remediation Agent. Use the following context information to answer the security question.
 
 Context Information:
 {context_text}
@@ -231,11 +243,11 @@ Context Information:
 Question: {query}
 
 Instructions:
-- Base your answer primarily on the provided context
-- If the context doesn't fully answer the question, use your cybersecurity knowledge
-- Provide specific, actionable recommendations
-- If mentioning CVEs, include the CVE ID and severity
-- Be clear about which information comes from the context vs. general knowledge
+- Base your answer ONLY on the provided context.
+- If the context doesn't contain the answer, explicitly state that you lack sufficient information.
+- DO NOT fabricate CVE IDs or severity scores.
+- Provide specific, actionable recommendations (e.g., 'Upgrade Apache to version 2.4.58').
+- If mentioning CVEs, include the CVE ID and severity.
 
 Answer:"""
         
@@ -295,7 +307,7 @@ def create_chatbot(use_ollama: bool = False) -> Optional[SecurityChatbot]:
             if os.path.exists('data/cve_data.json'):
                 cves = collector.load_from_file()
             else:
-                cves = collector.fetch_recent_cves(days=30, max_results=50)
+                cves = collector.fetch_recent_cves(days=90, max_results=200)
                 collector.save_to_file(cves)
             
             # Create infrastructure data
@@ -311,7 +323,9 @@ def create_chatbot(use_ollama: bool = False) -> Optional[SecurityChatbot]:
             ollama_model = os.getenv('OLLAMA_MODEL', 'llama2:latest')
             llm = LLMInterface(use_ollama=True, model=ollama_model)
         else:
-            llm = LLMInterface(use_ollama=False, model="gpt-3.5-turbo")
+            # Read from env, defaulting to gpt-4o-mini
+            openai_model = os.getenv('OPENAI_MODEL_NAME', 'gpt-4o-mini')
+            llm = LLMInterface(use_ollama=False, model=openai_model)
         
         # Create chatbot
         chatbot = SecurityChatbot(rag, llm)

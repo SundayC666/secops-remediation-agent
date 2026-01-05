@@ -314,7 +314,8 @@ if __name__ == "__main__":
         cves = collector.load_from_file()
     else:
         print("Fetching CVE data...")
-        cves = collector.fetch_recent_cves(days=30, max_results=50)
+        # UPDATED: Match the 90-day window
+        cves = collector.fetch_recent_cves(days=90, max_results=200)
         collector.save_to_file(cves)
     
     # Create infrastructure data

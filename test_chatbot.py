@@ -7,6 +7,10 @@ import os
 import sys
 import time
 from typing import List, Dict
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Add current directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -28,10 +32,10 @@ def test_cve_collector():
     
     collector = CVEDataCollector()
     
-    # Test fetching recent CVEs
-    print("Fetching recent CVEs (last 7 days)...")
+    # Test fetching recent CVEs (Increased range to ensure data availability)
+    print("Fetching recent CVEs (last 30 days)...")
     start_time = time.time()
-    cves = collector.fetch_recent_cves(days=7, max_results=20)
+    cves = collector.fetch_recent_cves(days=30, max_results=20)
     elapsed = time.time() - start_time
     
     if cves:
@@ -63,7 +67,7 @@ def test_rag_pipeline():
         cves = collector.load_from_file('test_cves.json')
     else:
         print("⚠️ No test CVE data found, fetching...")
-        cves = collector.fetch_recent_cves(days=7, max_results=20)
+        cves = collector.fetch_recent_cves(days=30, max_results=20)
         collector.save_to_file(cves, 'test_cves.json')
     
     if not cves:
@@ -149,7 +153,11 @@ def test_llm_integration():
         
         print("Testing OpenAI API...")
         try:
-            llm = LLMInterface(use_ollama=False, model="gpt-3.5-turbo")
+            # UPDATED: Use gpt-4o-mini for testing
+            model_name = os.getenv('OPENAI_MODEL_NAME', 'gpt-4o-mini')
+            print(f"Using model: {model_name}")
+            
+            llm = LLMInterface(use_ollama=False, model=model_name)
             test_prompt = "Explain what a CVE is in one sentence."
             
             print(f"Prompt: {test_prompt}")
@@ -179,7 +187,7 @@ def test_chatbot_integration():
     else:
         print("Building new knowledge base for testing...")
         collector = CVEDataCollector()
-        cves = collector.fetch_recent_cves(days=7, max_results=20)
+        cves = collector.fetch_recent_cves(days=30, max_results=20)
         infrastructure = create_sample_infrastructure()
         rag.build_knowledge_base(cves, infrastructure)
     
@@ -193,7 +201,9 @@ def test_chatbot_integration():
             if not os.getenv('OPENAI_API_KEY'):
                 print("⚠️ Skipping chatbot test (no API key)")
                 return None
-            llm = LLMInterface(use_ollama=False, model="gpt-3.5-turbo")
+            # UPDATED: Use gpt-4o-mini
+            model_name = os.getenv('OPENAI_MODEL_NAME', 'gpt-4o-mini')
+            llm = LLMInterface(use_ollama=False, model=model_name)
     except Exception as e:
         print(f"❌ Failed to initialize LLM: {e}")
         return False

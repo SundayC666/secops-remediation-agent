@@ -52,3 +52,6 @@ Thumbs.db
 # Compiled files
 *.pyc
 *.pyo
+
+# Email samples for Phishing Sandbox
+*.eml

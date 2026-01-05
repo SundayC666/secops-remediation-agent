@@ -34,13 +34,13 @@ class CVEDataCollector:
         # Rate limiting: 5 requests per 30 seconds without key, 50 with key
         self.rate_limit_delay = 6 if not api_key else 0.6
         
-    def fetch_recent_cves(self, days: int = 30, max_results: int = 100) -> List[Dict]:
+    def fetch_recent_cves(self, days: int = 90, max_results: int = 200) -> List[Dict]:
         """
         Fetch recent CVEs from the last N days
         
         Args:
-            days: Number of days to look back
-            max_results: Maximum number of CVEs to fetch
+            days: Number of days to look back (default: 90 for quarterly coverage)
+            max_results: Maximum number of CVEs to fetch (default: 200)
             
         Returns:
             List of CVE dictionaries
@@ -48,6 +48,7 @@ class CVEDataCollector:
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
         
+        # NIST NVD API requires strict ISO 8601 date format
         params = {
             'pubStartDate': start_date.strftime('%Y-%m-%dT00:00:00.000'),
             'pubEndDate': end_date.strftime('%Y-%m-%dT23:59:59.999'),
@@ -64,6 +65,8 @@ class CVEDataCollector:
                 timeout=30
             )
             response.raise_for_status()
+            
+            # Respect rate limits
             time.sleep(self.rate_limit_delay)
             
             data = response.json()
@@ -127,9 +130,17 @@ class CVEDataCollector:
             
             # Extract CVSS scores
             metrics = cve.get('metrics', {})
-            cvss_v3 = metrics.get('cvssMetricV31', [{}])[0].get('cvssData', {})
-            cvss_score = cvss_v3.get('baseScore', 0.0)
-            cvss_severity = cvss_v3.get('baseSeverity', 'UNKNOWN')
+            # Try V3.1 first, then fallback to V3.0 or V2
+            cvss_data = {}
+            if 'cvssMetricV31' in metrics:
+                cvss_data = metrics['cvssMetricV31'][0].get('cvssData', {})
+            elif 'cvssMetricV30' in metrics:
+                cvss_data = metrics['cvssMetricV30'][0].get('cvssData', {})
+            elif 'cvssMetricV2' in metrics:
+                cvss_data = metrics['cvssMetricV2'][0].get('cvssData', {})
+            
+            cvss_score = cvss_data.get('baseScore', 0.0)
+            cvss_severity = cvss_data.get('baseSeverity', 'UNKNOWN')
             
             # Extract affected products (CPE)
             configurations = cve.get('configurations', [])
@@ -153,7 +164,7 @@ class CVEDataCollector:
                 'description': description,
                 'cvss_score': cvss_score,
                 'severity': cvss_severity,
-                'affected_products': affected_products[:10],  # Limit to 10
+                'affected_products': affected_products[:10],  # Limit to 10 products
                 'references': reference_urls,
                 'published_date': published,
                 'full_text': self._create_full_text(
@@ -214,9 +225,9 @@ if __name__ == "__main__":
     # Test the collector
     collector = CVEDataCollector()
     
-    # Fetch recent CVEs
+    # Fetch recent CVEs (90 days, 200 results)
     print("Fetching recent CVEs...")
-    cves = collector.fetch_recent_cves(days=30, max_results=50)
+    cves = collector.fetch_recent_cves(days=90, max_results=200)
     
     if cves:
         print(f"\nFetched {len(cves)} CVEs")

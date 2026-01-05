@@ -99,7 +99,7 @@ def refresh_knowledge_base():
         try:
             # Fetch new CVE data
             collector = CVEDataCollector(api_key=os.getenv('NVD_API_KEY'))
-            cves = collector.fetch_recent_cves(days=30, max_results=100)
+            cves = collector.fetch_recent_cves(days=90, max_results=200)
             collector.save_to_file(cves)
             
             # Rebuild knowledge base

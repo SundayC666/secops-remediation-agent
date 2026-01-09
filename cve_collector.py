@@ -1,241 +1,133 @@
 """
-CVE Data Collection Module
-Fetches vulnerability data from NIST NVD API
+CVE Data Collector Module
+Fetches vulnerability data from NIST NVD API and CISA KEV Catalog.
+Extracts vendor patch links for actionable remediation.
 """
 
 import requests
 import json
-import time
 import os
-from typing import List, Dict, Optional
 from datetime import datetime, timedelta
 import logging
+from typing import List, Dict, Set
 
+# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
 class CVEDataCollector:
-    """Collects CVE data from NIST National Vulnerability Database"""
+    """
+    Collector for security vulnerability data from multiple sources.
+    1. NIST NVD (National Vulnerability Database)
+    2. CISA KEV (Known Exploited Vulnerabilities)
+    """
     
-    def __init__(self, api_key: Optional[str] = None):
-        """
-        Initialize CVE data collector
-        
-        Args:
-            api_key: NVD API key (optional, but increases rate limit)
-        """
-        self.base_url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
+    def __init__(self, api_key: str = None):
         self.api_key = api_key
-        self.headers = {}
-        if api_key:
-            self.headers['apiKey'] = api_key
+        self.nvd_base_url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
+        self.cisa_kev_url = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+
+    def fetch_cisa_kev(self) -> Set[str]:
+        """Fetch CISA Known Exploited Vulnerabilities"""
+        try:
+            logger.info("Fetching CISA KEV data...")
+            response = requests.get(self.cisa_kev_url, timeout=15)
+            response.raise_for_status()
+            data = response.json()
+            kev_cves = {v['cveID'] for v in data.get('vulnerabilities', [])}
+            logger.info(f"Loaded {len(kev_cves)} exploited vulnerabilities from CISA KEV.")
+            return kev_cves
+        except Exception as e:
+            logger.error(f"Failed to fetch CISA KEV: {e}")
+            return set()
+
+    def fetch_recent_cves(self, days: int = 90, max_results: int = 500) -> List[Dict]:
+        """Fetch NVD data and enrich with References (Patch Links)"""
+        kev_set = self.fetch_cisa_kev()
         
-        # Rate limiting: 5 requests per 30 seconds without key, 50 with key
-        self.rate_limit_delay = 6 if not api_key else 0.6
-        
-    def fetch_recent_cves(self, days: int = 90, max_results: int = 200) -> List[Dict]:
-        """
-        Fetch recent CVEs from the last N days
-        
-        Args:
-            days: Number of days to look back (default: 90 for quarterly coverage)
-            max_results: Maximum number of CVEs to fetch (default: 200)
-            
-        Returns:
-            List of CVE dictionaries
-        """
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
         
-        # NIST NVD API requires strict ISO 8601 date format
+        pub_start = start_date.strftime('%Y-%m-%dT%H:%M:%S.000')
+        pub_end = end_date.strftime('%Y-%m-%dT%H:%M:%S.000')
+        
         params = {
-            'pubStartDate': start_date.strftime('%Y-%m-%dT00:00:00.000'),
-            'pubEndDate': end_date.strftime('%Y-%m-%dT23:59:59.999'),
-            'resultsPerPage': min(max_results, 2000)
+            'pubStartDate': pub_start,
+            'pubEndDate': pub_end,
+            'resultsPerPage': max_results
         }
         
-        logger.info(f"Fetching CVEs from {start_date.date()} to {end_date.date()}")
-        
+        headers = {}
+        if self.api_key:
+            headers['apiKey'] = self.api_key
+            
         try:
-            response = requests.get(
-                self.base_url,
-                params=params,
-                headers=self.headers,
-                timeout=30
-            )
+            logger.info(f"Fetching NVD CVEs from {start_date.date()} to {end_date.date()}...")
+            response = requests.get(self.nvd_base_url, params=params, headers=headers, timeout=30)
             response.raise_for_status()
-            
-            # Respect rate limits
-            time.sleep(self.rate_limit_delay)
-            
             data = response.json()
-            vulnerabilities = data.get('vulnerabilities', [])
             
-            logger.info(f"Successfully fetched {len(vulnerabilities)} CVEs")
-            return self._parse_cves(vulnerabilities)
+            cve_items = data.get('vulnerabilities', [])
+            logger.info(f"Fetched {len(cve_items)} CVEs from NVD.")
             
-        except requests.exceptions.RequestException as e:
+            processed_cves = []
+            
+            for item in cve_items:
+                cve = item['cve']
+                cve_id = cve['id']
+                
+                # 1. Description
+                descriptions = cve.get('descriptions', [])
+                desc_text = next((d['value'] for d in descriptions if d['lang'] == 'en'), "No description available.")
+                
+                # 2. Metrics (Severity)
+                metrics = cve.get('metrics', {})
+                severity = "UNKNOWN"
+                if 'cvssMetricV31' in metrics:
+                    severity = metrics['cvssMetricV31'][0]['cvssData'].get('baseSeverity', 'UNKNOWN')
+                elif 'cvssMetricV30' in metrics:
+                    severity = metrics['cvssMetricV30'][0]['cvssData'].get('baseSeverity', 'UNKNOWN')
+                elif 'cvssMetricV2' in metrics:
+                    severity = metrics['cvssMetricV2'][0].get('baseSeverity', 'UNKNOWN')
+                
+                # 3. References (Patch Links) - NEW FEATURE
+                refs = cve.get('references', [])
+                patch_links = [r['url'] for r in refs if 'url' in r][:3] # Keep top 3 links to save tokens
+                
+                # 4. Enrichment
+                is_exploited = cve_id in kev_set
+                cisa_tag = "[⚠️ CISA KEV: EXPLOITED IN WILD]" if is_exploited else ""
+                
+                # Format references for Embedding
+                ref_text = "\nReferences: " + ", ".join(patch_links) if patch_links else ""
+                
+                processed_cves.append({
+                    'id': cve_id,
+                    'description': desc_text,
+                    'severity': severity,
+                    'published': cve.get('published', ''),
+                    'source': 'nvd',
+                    'is_exploited': is_exploited,
+                    'cisa_warning': cisa_tag,
+                    'references': patch_links, # Store list for UI if needed
+                    # Content field is what the LLM sees
+                    'content': f"{cve_id} {cisa_tag}\nSeverity: {severity}\nDescription: {desc_text}{ref_text}"
+                })
+                
+            return processed_cves
+            
+        except Exception as e:
             logger.error(f"Error fetching CVEs: {e}")
             return []
-    
-    def fetch_specific_cve(self, cve_id: str) -> Optional[Dict]:
-        """
-        Fetch a specific CVE by ID
-        
-        Args:
-            cve_id: CVE identifier (e.g., CVE-2024-1234)
-            
-        Returns:
-            CVE dictionary or None if not found
-        """
-        params = {'cveId': cve_id}
-        
-        try:
-            response = requests.get(
-                self.base_url,
-                params=params,
-                headers=self.headers,
-                timeout=30
-            )
-            response.raise_for_status()
-            time.sleep(self.rate_limit_delay)
-            
-            data = response.json()
-            vulnerabilities = data.get('vulnerabilities', [])
-            
-            if vulnerabilities:
-                parsed = self._parse_cves(vulnerabilities)
-                return parsed[0] if parsed else None
-            return None
-            
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Error fetching CVE {cve_id}: {e}")
-            return None
-    
-    def _parse_cves(self, vulnerabilities: List[Dict]) -> List[Dict]:
-        """Parse raw CVE data into structured format"""
-        parsed_cves = []
-        
-        for vuln in vulnerabilities:
-            cve = vuln.get('cve', {})
-            cve_id = cve.get('id', 'Unknown')
-            
-            # Extract description
-            descriptions = cve.get('descriptions', [])
-            description = next(
-                (d['value'] for d in descriptions if d.get('lang') == 'en'),
-                'No description available'
-            )
-            
-            # Extract CVSS scores
-            metrics = cve.get('metrics', {})
-            # Try V3.1 first, then fallback to V3.0 or V2
-            cvss_data = {}
-            if 'cvssMetricV31' in metrics:
-                cvss_data = metrics['cvssMetricV31'][0].get('cvssData', {})
-            elif 'cvssMetricV30' in metrics:
-                cvss_data = metrics['cvssMetricV30'][0].get('cvssData', {})
-            elif 'cvssMetricV2' in metrics:
-                cvss_data = metrics['cvssMetricV2'][0].get('cvssData', {})
-            
-            cvss_score = cvss_data.get('baseScore', 0.0)
-            cvss_severity = cvss_data.get('baseSeverity', 'UNKNOWN')
-            
-            # Extract affected products (CPE)
-            configurations = cve.get('configurations', [])
-            affected_products = []
-            for config in configurations:
-                for node in config.get('nodes', []):
-                    for cpe_match in node.get('cpeMatch', []):
-                        if cpe_match.get('vulnerable'):
-                            criteria = cpe_match.get('criteria', '')
-                            affected_products.append(criteria)
-            
-            # Extract references
-            references = cve.get('references', [])
-            reference_urls = [ref.get('url') for ref in references[:3]]  # First 3 refs
-            
-            # Published date
-            published = cve.get('published', '')
-            
-            parsed_cve = {
-                'cve_id': cve_id,
-                'description': description,
-                'cvss_score': cvss_score,
-                'severity': cvss_severity,
-                'affected_products': affected_products[:10],  # Limit to 10 products
-                'references': reference_urls,
-                'published_date': published,
-                'full_text': self._create_full_text(
-                    cve_id, description, cvss_score, 
-                    cvss_severity, affected_products, published
-                )
-            }
-            
-            parsed_cves.append(parsed_cve)
-        
-        return parsed_cves
-    
-    def _create_full_text(self, cve_id: str, description: str, 
-                         cvss_score: float, severity: str,
-                         affected_products: List[str], published: str) -> str:
-        """Create a full text representation for embedding"""
-        text = f"""CVE ID: {cve_id}
-Severity: {severity} (CVSS Score: {cvss_score})
-Published: {published}
 
-Description:
-{description}
+    def save_to_file(self, data: List[Dict], filename: str = "data/cve_data.json"):
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        logger.info(f"Saved {len(data)} records to {filename}")
 
-Affected Products:
-{chr(10).join('- ' + prod for prod in affected_products[:5])}
-
-This vulnerability has a {severity.lower()} severity rating with a CVSS score of {cvss_score}.
-Organizations using the affected products should prioritize remediation based on this severity level.
-"""
-        return text
-    
-    def save_to_file(self, cves: List[Dict], filename: str = 'cve_data.json'):
-        """Save CVE data to JSON file"""
-        os.makedirs('data', exist_ok=True)
-        filepath = os.path.join('data', filename)
-        
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(cves, f, indent=2, ensure_ascii=False)
-        
-        logger.info(f"Saved {len(cves)} CVEs to {filepath}")
-    
-    def load_from_file(self, filename: str = 'cve_data.json') -> List[Dict]:
-        """Load CVE data from JSON file"""
-        filepath = os.path.join('data', filename)
-        
-        if not os.path.exists(filepath):
-            logger.warning(f"File {filepath} not found")
+    def load_from_file(self, filename: str = "data/cve_data.json") -> List[Dict]:
+        if not os.path.exists(filename):
             return []
-        
-        with open(filepath, 'r', encoding='utf-8') as f:
-            cves = json.load(f)
-        
-        logger.info(f"Loaded {len(cves)} CVEs from {filepath}")
-        return cves
-
-
-if __name__ == "__main__":
-    # Test the collector
-    collector = CVEDataCollector()
-    
-    # Fetch recent CVEs (90 days, 200 results)
-    print("Fetching recent CVEs...")
-    cves = collector.fetch_recent_cves(days=90, max_results=200)
-    
-    if cves:
-        print(f"\nFetched {len(cves)} CVEs")
-        print(f"\nExample CVE: {cves[0]['cve_id']}")
-        print(f"Severity: {cves[0]['severity']}")
-        print(f"Description: {cves[0]['description'][:200]}...")
-        
-        # Save to file
-        collector.save_to_file(cves)
-    else:
-        print("No CVEs fetched. Check your internet connection.")
+        with open(filename, 'r', encoding='utf-8') as f:
+            return json.load(f)

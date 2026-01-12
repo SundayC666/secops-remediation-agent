@@ -7,6 +7,20 @@
 
 > A RAG-based security vulnerability analysis platform with OS fingerprinting, CVE mapping, and phishing email detection.
 
+## What This Tool Can Do
+
+| Category | Capability | Description |
+|----------|------------|-------------|
+| **CVE Analysis** | OS-specific vulnerability lookup | Auto-detect your OS and find relevant CVEs |
+| | CISA KEV flagging | Highlight actively exploited vulnerabilities |
+| | Remediation guidance | LLM-powered fix recommendations |
+| **Phishing Detection** | Email header analysis | Parse .eml files for suspicious sender patterns |
+| | URL reputation check | Identify malicious links in emails |
+| | Risk scoring | 0-10 automated threat assessment |
+| **Security Checks** | Input sanitization | Prevent XSS/injection in user inputs |
+| | Domain verification | Check sender domain authenticity |
+| | Anti-hallucination guardrails | Ensure LLM responses are grounded in CVE data |
+
 ## Architecture
 
 ```

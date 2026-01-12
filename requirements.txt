@@ -1,15 +1,38 @@
-streamlit>=1.31.0
-langchain>=0.1.0
-langchain-community>=0.0.20
-langchain-openai>=0.0.5
-langchain-text-splitters>=0.0.1
-langchain-core>=0.1.0
-openai>=1.12.0
-faiss-cpu>=1.9.0
-sentence-transformers>=2.3.0
-requests>=2.31.0
-python-dotenv>=1.0.0
-pandas>=2.0.0
-numpy>=1.24.0
-tiktoken>=0.6.0
-beautifulsoup4>=4.12.0
+# SecOps Remediation Agent v2.0
+# Full dependencies - No API keys required, local LLM only
+
+# ============================================
+# Web Framework
+# ============================================
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+python-multipart==0.0.12
+
+# ============================================
+# Configuration
+# ============================================
+pydantic==2.10.0
+pydantic-settings==2.7.0
+python-dotenv==1.0.1
+
+# ============================================
+# Vector Database & Embeddings
+# ============================================
+lancedb==0.17.0
+sentence-transformers==3.3.1
+
+# ============================================
+# HTTP Client (for CVE fetching)
+# ============================================
+httpx==0.28.1
+aiohttp==3.11.11
+
+# ============================================
+# Data Processing
+# ============================================
+numpy>=1.24.0,<2.0.0
+
+# ============================================
+# Email Parsing (for phishing analyzer)
+# ============================================
+email-validator==2.2.0

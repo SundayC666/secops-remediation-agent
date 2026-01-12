@@ -7,6 +7,8 @@
 
 An open-source security operations platform for vulnerability management and phishing detection. Features automatic OS fingerprinting, real-time CVE lookup, and email threat analysis. Integrates with industry-standard threat intelligence sources including CIRCL CVE, NIST NVD, and CISA KEV catalogs.
 
+**[Live Demo](https://security-automation-platform.onrender.com)**
+
 ## What This Tool Can Do
 
 | Category | Capability | Description |

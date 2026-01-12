@@ -1,0 +1,4 @@
+# Ignore vendor files in language statistics
+static/fontawesome/** linguist-vendored
+static/fontawesome/**/*.js linguist-vendored
+static/fontawesome/**/*.css linguist-vendored

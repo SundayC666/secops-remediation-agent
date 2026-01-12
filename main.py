@@ -6,6 +6,7 @@ Entry point: python main.py
 """
 
 import asyncio
+import os
 import sys
 from pathlib import Path
 
@@ -67,11 +68,12 @@ async def serve_index():
 
 
 if __name__ == "__main__":
-    # Run the server
+    # Run the server (PORT env var for Render deployment)
+    port = int(os.environ.get("PORT", settings.PORT))
     uvicorn.run(
         "main:app",
         host=settings.HOST,
-        port=settings.PORT,
+        port=port,
         reload=settings.DEBUG,
         log_level="info"
     )

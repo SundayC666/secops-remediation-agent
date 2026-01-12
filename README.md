@@ -5,7 +5,7 @@
 ![Security](https://img.shields.io/badge/Security-CIRCL%20CVE-red?logo=shield)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-> A RAG-based security vulnerability analysis platform with OS fingerprinting, CVE mapping, and phishing email detection.
+An open-source security operations platform for vulnerability management and phishing detection. Features automatic OS fingerprinting, real-time CVE lookup, and email threat analysis. Integrates with industry-standard threat intelligence sources including CIRCL CVE, NIST NVD, and CISA KEV catalogs.
 
 ## What This Tool Can Do
 

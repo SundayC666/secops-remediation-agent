@@ -156,6 +156,21 @@ python main.py
 # Open http://localhost:8000
 ```
 
+### 4. Enable LLM Features (Optional)
+
+For AI-powered deep analysis and remediation recommendations, install [Ollama](https://ollama.ai):
+
+```bash
+# Install Ollama from https://ollama.ai
+ollama pull llama2
+```
+
+The application will automatically detect Ollama and enable:
+- **Deep CVE Analysis**: Context-aware remediation recommendations
+- **Phishing Classification**: AI-powered threat assessment
+
+> **Note:** The [Live Demo](https://security-automation-platform.onrender.com) runs without Ollama. LLM features are only available when running locally with Ollama installed.
+
 ## Security
 
 This project implements OWASP Top 10 security controls:

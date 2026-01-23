@@ -1,0 +1,106 @@
+{
+  "_comment": "Whitelist configuration for phishing analyzer - Edit this file to customize",
+  "_updated": "2026-01-15",
+
+  "legitimate_tech_companies": [
+    "google.com",
+    "youtube.com",
+    "facebook.com",
+    "meta.com",
+    "instagram.com",
+    "whatsapp.com",
+    "microsoft.com",
+    "linkedin.com",
+    "github.com",
+    "apple.com",
+    "icloud.com",
+    "amazon.com",
+    "aws.amazon.com",
+    "netflix.com",
+    "twitter.com",
+    "x.com",
+    "tiktok.com",
+    "bytedance.com",
+    "snapchat.com",
+    "snap.com",
+    "spotify.com",
+    "discord.com",
+    "slack.com",
+    "zoom.us",
+    "dropbox.com",
+    "adobe.com",
+    "salesforce.com",
+    "oracle.com",
+    "ibm.com",
+    "intel.com",
+    "nvidia.com",
+    "amd.com",
+    "tesla.com",
+    "uber.com",
+    "lyft.com",
+    "airbnb.com",
+    "stripe.com",
+    "paypal.com",
+    "coinbase.com",
+    "robinhood.com"
+  ],
+
+  "recruiting_platforms": [
+    "codesignal.com",
+    "hackerrank.com",
+    "leetcode.com",
+    "codility.com",
+    "greenhouse.io",
+    "lever.co",
+    "workday.com",
+    "icims.com",
+    "taleo.net",
+    "smartrecruiters.com",
+    "jobvite.com",
+    "indeed.com",
+    "glassdoor.com",
+    "monster.com",
+    "ziprecruiter.com"
+  ],
+
+  "email_security_services": [
+    "safelinks.protection.outlook.com",
+    "protection.outlook.com",
+    "urldefense.proofpoint.com",
+    "urldefense.com",
+    "click.pstmrk.it",
+    "mimecast.com",
+    "barracuda.com",
+    "fireeyecloud.com",
+    "fireeye.com"
+  ],
+
+  "legitimate_tracking_services": [
+    "awstrack.me",
+    "aws.training",
+    "amazonses.com",
+    "sendgrid.net",
+    "mailchimp.com",
+    "list-manage.com",
+    "hubspot.com",
+    "marketo.com",
+    "eloqua.com",
+    "exacttarget.com"
+  ],
+
+  "trusted_tlds": [
+    ".edu",
+    ".gov",
+    ".mil",
+    ".ac.uk",
+    ".edu.au",
+    ".edu.tw",
+    ".gov.uk",
+    ".gov.tw"
+  ],
+
+  "user_additions": [
+    "_comment: Add your own trusted domains here",
+    "_example: mycompany.com"
+  ]
+}

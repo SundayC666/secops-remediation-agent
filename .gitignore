@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Claude Code (local settings)
+.claude/
+
+# Environment variables (contains API keys!)
+.env
+
+# Data files (can be regenerated)
+data/
+lancedb/
+data/*.json
+
+# Vector store (can be regenerated)
+vector_store/
+*.bin
+*.pkl
+
+# Test outputs
+test_vector_store/
+
+# Logs
+*.log
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Temporary files
+*.tmp
+*.temp
+~*
+
+# Compiled files
+*.pyc
+*.pyo
+
+# Email samples for Phishing Sandbox
+*.eml
+
+# Large image files (keep fishing images for phishing analyzer UI)
+# static/images/
+
+# Test reports
+tests/test_report.json

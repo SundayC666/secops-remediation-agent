@@ -1,0 +1,84 @@
+{
+  "_comment": "SLA Policy Configuration - Based on CISA BOD 22-01 and industry standards",
+  "_reference": "https://www.cisa.gov/news-events/directives/bod-22-01-reducing-significant-risk-known-exploited-vulnerabilities",
+  "_updated": "2026-01-19",
+
+  "policy_name": "CISA BOD 22-01 Compliant",
+  "description": "Vulnerability remediation SLA aligned with CISA Binding Operational Directive 22-01",
+
+  "sla_definitions": {
+    "_comment": "SLA in days - KEV status takes priority over CVSS severity",
+
+    "kev_post_2021": {
+      "days": 14,
+      "description": "KEV vulnerabilities with CVE assigned 2021 or later",
+      "reference": "BOD 22-01: Two weeks for vulnerabilities added after Nov 2021"
+    },
+    "kev_pre_2021": {
+      "days": 180,
+      "description": "KEV vulnerabilities with CVE assigned before 2021",
+      "reference": "BOD 22-01: Six months for vulnerabilities assigned before 2021"
+    },
+    "critical": {
+      "days": 15,
+      "description": "CVSS 9.0-10.0 without KEV status",
+      "reference": "Industry standard: Critical vulnerabilities within 15 days"
+    },
+    "high": {
+      "days": 30,
+      "description": "CVSS 7.0-8.9 without KEV status",
+      "reference": "PCI-DSS / Industry standard: High vulnerabilities within 30 days"
+    },
+    "medium": {
+      "days": 90,
+      "description": "CVSS 4.0-6.9 without KEV status",
+      "reference": "Industry standard: Medium vulnerabilities within 90 days"
+    },
+    "low": {
+      "days": 180,
+      "description": "CVSS 0.1-3.9 without KEV status",
+      "reference": "Industry standard: Low vulnerabilities within 180 days"
+    }
+  },
+
+  "priority_order": {
+    "_comment": "Priority ranking - lower number = higher priority",
+    "kev_critical": 1,
+    "kev_high": 2,
+    "kev_medium": 3,
+    "kev_low": 4,
+    "critical": 5,
+    "high": 6,
+    "medium": 7,
+    "low": 8
+  },
+
+  "status_thresholds": {
+    "_comment": "Percentage of SLA remaining to trigger status change",
+    "on_track": 50,
+    "due_soon": 25,
+    "overdue": 0
+  },
+
+  "overdue_actions": {
+    "_comment": "Recommended actions when SLA is breached",
+    "escalate": true,
+    "isolate_recommendation": "If remediation cannot be accomplished, remove asset from network per CISA guidance",
+    "reference": "https://www.cisa.gov/known-exploited-vulnerabilities"
+  },
+
+  "compliance_frameworks": [
+    {
+      "name": "CISA BOD 22-01",
+      "url": "https://www.cisa.gov/news-events/directives/bod-22-01-reducing-significant-risk-known-exploited-vulnerabilities"
+    },
+    {
+      "name": "NIST CSF 2.0",
+      "url": "https://www.nist.gov/cyberframework"
+    },
+    {
+      "name": "PCI-DSS",
+      "url": "https://www.pcisecuritystandards.org/"
+    }
+  ]
+}

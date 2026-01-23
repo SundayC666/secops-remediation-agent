@@ -1,0 +1,2004 @@
+/**
+ * SecOps Remediation Agent
+ * Design: Warm, editorial, human-crafted feel
+ */
+
+/* ============================================
+   Fonts - Add Monospace for handcrafted feel
+   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap');
+
+:root {
+    /* Original Colors - kept exactly */
+    --cloud-dancer: #F1EDE4;
+    --soft-white: #FAF9F7;
+    --pure-white: #FFFFFF;
+    --iced-coffee: #C89B5D;
+    --mango-mojito: #D19C4E;
+    --cocoa-creme: #A08068;
+    --caramel: #C17A50;
+    --tea: #8B9075;
+    --papaya: #F5A26E;
+    --pink-lemonade: #E56B7A;
+
+    /* Severity - kept */
+    --critical: #DC3545;
+    --critical-bg: rgba(220, 53, 69, 0.06);
+    --high: #E85D04;
+    --high-bg: rgba(232, 93, 4, 0.06);
+    --medium: #F4A300;
+    --medium-bg: rgba(244, 163, 0, 0.06);
+    --low: #6C757D;
+    --low-bg: rgba(108, 117, 125, 0.06);
+    --safe: #28A745;
+    --safe-bg: rgba(40, 167, 69, 0.06);
+
+    /* Text */
+    --text-dark: #2D2926;
+    --text-body: #4A4543;
+    --text-light: #7A756F;
+
+    /* Compatibility - for JS-generated elements */
+    --accent-indigo: var(--caramel);
+    --accent-teal: var(--tea);
+    --accent-rose: var(--pink-lemonade);
+    --powder-sky: rgba(200, 155, 93, 0.1);
+    --powder-rose: rgba(229, 107, 122, 0.1);
+    --atmos-gray: rgba(160, 128, 104, 0.3);
+    --atmos-mist: var(--soft-white);
+    --text-primary: var(--text-dark);
+    --text-secondary: var(--text-body);
+
+    /* Fonts */
+    --font-mono: 'DM Mono', 'Courier New', monospace;
+    --font-serif: 'Source Serif 4', Georgia, serif;
+}
+
+/* ============================================
+   Base
+   ============================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+}
+
+body {
+    font-family: var(--font-mono);
+    font-weight: 400;
+    background: var(--cloud-dancer);
+    color: var(--text-dark);
+    line-height: 1.65;
+    min-height: 100vh;
+}
+
+/* ============================================
+   Welcome Overlay
+   ============================================ */
+.welcome-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--cloud-dancer);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity 0.8s ease;
+}
+
+.welcome-overlay.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.welcome-content {
+    max-width: 500px;
+    padding: 40px;
+    text-align: left;
+}
+
+.welcome-header-line {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+}
+
+.welcome-title {
+    font-family: var(--font-serif);
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+}
+
+.welcome-divider {
+    color: var(--text-light);
+    opacity: 0.5;
+}
+
+.welcome-subtitle {
+    font-size: 13px;
+    color: var(--text-light);
+    letter-spacing: 0.02em;
+}
+
+.welcome-steps {
+    border-top: 1px dashed var(--cocoa-creme);
+    padding-top: 24px;
+    margin-bottom: 32px;
+}
+
+.welcome-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px dashed rgba(160, 128, 104, 0.3);
+}
+
+.welcome-step:last-child {
+    border-bottom: none;
+}
+
+.step-icon {
+    width: 20px;
+    font-size: 12px;
+    color: var(--text-light);
+    padding-top: 2px;
+}
+
+.welcome-step.active .step-icon,
+.welcome-step.completed .step-icon {
+    color: var(--caramel);
+}
+
+.step-text {
+    flex: 1;
+}
+
+.step-label {
+    font-size: 13px;
+    display: block;
+}
+
+.step-detail {
+    font-size: 11px;
+    color: var(--text-light);
+    display: block;
+    margin-top: 2px;
+}
+
+.step-status {
+    font-size: 11px;
+    color: var(--text-light);
+}
+
+.welcome-step.active .step-status {
+    color: var(--caramel);
+}
+
+.welcome-step.completed .step-status {
+    color: var(--safe);
+}
+
+/* Progress bar and bubble */
+.welcome-progress {
+    margin-top: 24px;
+}
+
+.progress-bar {
+    height: 2px;
+    background: rgba(160, 128, 104, 0.2);
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--caramel);
+    width: 0%;
+    transition: width 0.5s ease;
+}
+
+.bubble-container {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translate(-50%, -50%);
+    transition: left 0.5s ease;
+}
+
+/* Progress bubble - crystal style */
+.bubble {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: radial-gradient(
+        ellipse at 30% 30%,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(255, 255, 255, 0.6) 20%,
+        rgba(245, 162, 110, 0.4) 40%,
+        rgba(200, 155, 93, 0.3) 60%,
+        rgba(193, 122, 80, 0.2) 80%,
+        rgba(160, 128, 104, 0.1) 100%
+    );
+    box-shadow:
+        inset 0 -6px 12px rgba(255, 255, 255, 0.5),
+        inset 4px 4px 10px rgba(255, 255, 255, 0.6),
+        0 0 15px rgba(245, 162, 110, 0.3),
+        0 4px 8px rgba(160, 128, 104, 0.2);
+    animation: bubbleFloat 2s ease-in-out infinite;
+}
+
+.bubble::before {
+    content: '';
+    position: absolute;
+    top: 15%;
+    left: 20%;
+    width: 35%;
+    height: 25%;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    filter: blur(1px);
+}
+
+@keyframes bubbleFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+/* ============================================
+   Ocean Bubble Loading Animation (for CVE search)
+   ============================================ */
+.ocean-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 40px 20px;
+    min-height: 280px;
+    position: relative;
+}
+
+/* Borderless bubble area - extends beyond container for full effect */
+.ocean-loading .ocean-bubbles-area {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 300px;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.ocean-loading .ocean-bubbles-area.fading {
+    animation: fadeOut 0.3s ease-out forwards;
+}
+
+/* Individual ocean bubble */
+.ocean-bubble {
+    position: absolute;
+    bottom: 0;
+    border-radius: 50%;
+    background: radial-gradient(
+        circle at 30% 30%,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(173, 216, 230, 0.7) 40%,
+        rgba(135, 206, 235, 0.5) 70%,
+        rgba(64, 224, 208, 0.3) 100%
+    );
+    box-shadow:
+        inset -2px -2px 6px rgba(255, 255, 255, 0.6),
+        inset 2px 2px 4px rgba(135, 206, 235, 0.4),
+        0 0 12px rgba(135, 206, 235, 0.4);
+    animation: bubbleRise linear forwards;
+}
+
+/* Bubble shine highlight */
+.ocean-bubble::before {
+    content: '';
+    position: absolute;
+    top: 15%;
+    left: 20%;
+    width: 35%;
+    height: 30%;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(255, 255, 255, 0.9) 0%,
+        transparent 70%
+    );
+    border-radius: 50%;
+}
+
+@keyframes bubbleRise {
+    0% {
+        transform: translateY(0) translateX(0) scale(0.6);
+        opacity: 0;
+    }
+    5% {
+        opacity: 0.9;
+        transform: translateY(-10px) translateX(calc(var(--wobble) * 0.1)) scale(0.8);
+    }
+    20% {
+        opacity: 0.85;
+        transform: translateY(-50px) translateX(calc(var(--wobble) * -0.25)) scale(0.95);
+    }
+    40% {
+        transform: translateY(-100px) translateX(calc(var(--wobble) * 0.35)) scale(1);
+        opacity: 0.8;
+    }
+    60% {
+        transform: translateY(-150px) translateX(calc(var(--wobble) * -0.3)) scale(0.95);
+        opacity: 0.65;
+    }
+    80% {
+        transform: translateY(-200px) translateX(calc(var(--wobble) * 0.25)) scale(0.85);
+        opacity: 0.4;
+    }
+    100% {
+        transform: translateY(-260px) translateX(var(--wobble)) scale(0.7);
+        opacity: 0;
+    }
+}
+
+.ocean-loading .ocean-text {
+    margin-top: 20px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--text-light);
+    text-align: center;
+    position: relative;
+    z-index: 10;
+    animation: waveFloat 3s ease-in-out infinite;
+}
+
+@keyframes waveFloat {
+    0%, 100% {
+        transform: translateY(0) rotate(-1deg);
+    }
+    25% {
+        transform: translateY(-6px) rotate(0.5deg);
+    }
+    50% {
+        transform: translateY(-2px) rotate(1deg);
+    }
+    75% {
+        transform: translateY(-8px) rotate(-0.5deg);
+    }
+}
+
+/* Burst bubble animation */
+.burst-bubble {
+    position: fixed;
+    pointer-events: none;
+    z-index: 10002;
+    border-radius: 50%;
+}
+
+@keyframes bubbleBurst {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.9;
+    }
+    50% {
+        opacity: 0.6;
+    }
+    100% {
+        transform: translate(var(--tx), var(--ty)) scale(0.3);
+        opacity: 0;
+    }
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* SLA Overdue pulse animation */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* ============================================
+   Fishing Cat Loading Animation V2 (Phishing Analyzer)
+   Loading: Water covers the fish area (fish hidden underwater)
+   Complete: Water slides down, fish revealed jumping out
+   ============================================ */
+.fishing-cat-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* Scene container */
+.fishing-scene-v2 {
+    position: relative;
+    width: 400px;
+    height: 220px;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Both fishing images - stacked on top of each other */
+.fishing-scene-v2 .fishing-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: opacity 0.5s ease-out;
+}
+
+/* Loading state: underwater image visible */
+.fishing-scene-v2 .fishing-underwater {
+    opacity: 1;
+    z-index: 1;
+}
+
+/* Loading state: caught image hidden */
+.fishing-scene-v2 .fishing-caught {
+    opacity: 0;
+    z-index: 2;
+}
+
+/* ===================
+   WATER WAVE OVERLAY (loading state animation)
+   =================== */
+.water-waves-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 45%;
+    z-index: 5;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.water-wave {
+    position: absolute;
+    width: 200%;
+    height: 100%;
+    left: -50%;
+    background: linear-gradient(180deg,
+        rgba(100, 180, 220, 0.0) 0%,
+        rgba(100, 180, 220, 0.15) 30%,
+        rgba(70, 150, 200, 0.25) 60%,
+        rgba(50, 130, 190, 0.3) 100%
+    );
+    animation: waterWaveMove 3s ease-in-out infinite;
+}
+
+.water-wave.w2 {
+    animation-delay: -1s;
+    opacity: 0.7;
+}
+
+.water-wave.w3 {
+    animation-delay: -2s;
+    opacity: 0.5;
+}
+
+@keyframes waterWaveMove {
+    0%, 100% { transform: translateX(0) translateY(0); }
+    25% { transform: translateX(2%) translateY(-3px); }
+    50% { transform: translateX(0) translateY(2px); }
+    75% { transform: translateX(-2%) translateY(-2px); }
+}
+
+/* ===================
+   UNDERWATER BUBBLES (loading state)
+   Soft, playful bubbles floating up from below
+   =================== */
+.underwater-bubbles {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60%;
+    z-index: 4;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.underwater-bubble {
+    position: absolute;
+    bottom: -20px;
+    border-radius: 50%;
+    background: radial-gradient(
+        circle at 30% 30%,
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(200, 225, 240, 0.6) 40%,
+        rgba(160, 200, 220, 0.4) 70%,
+        rgba(120, 180, 210, 0.2) 100%
+    );
+    box-shadow:
+        inset -1px -1px 3px rgba(255, 255, 255, 0.5),
+        inset 1px 1px 2px rgba(160, 200, 220, 0.3),
+        0 0 6px rgba(160, 200, 220, 0.3);
+    animation: underwaterBubbleRise linear infinite;
+}
+
+/* Multiple bubble sizes and positions */
+.underwater-bubble.ub1 { width: 8px; height: 8px; left: 15%; animation-duration: 3.5s; animation-delay: 0s; }
+.underwater-bubble.ub2 { width: 5px; height: 5px; left: 25%; animation-duration: 4s; animation-delay: 0.5s; }
+.underwater-bubble.ub3 { width: 10px; height: 10px; left: 35%; animation-duration: 3s; animation-delay: 1s; }
+.underwater-bubble.ub4 { width: 6px; height: 6px; left: 45%; animation-duration: 3.8s; animation-delay: 0.3s; }
+.underwater-bubble.ub5 { width: 4px; height: 4px; left: 20%; animation-duration: 4.2s; animation-delay: 1.5s; }
+.underwater-bubble.ub6 { width: 7px; height: 7px; left: 30%; animation-duration: 3.3s; animation-delay: 0.8s; }
+.underwater-bubble.ub7 { width: 9px; height: 9px; left: 40%; animation-duration: 3.6s; animation-delay: 2s; }
+.underwater-bubble.ub8 { width: 5px; height: 5px; left: 50%; animation-duration: 4.5s; animation-delay: 0.2s; }
+
+@keyframes underwaterBubbleRise {
+    0% {
+        transform: translateY(0) translateX(0) scale(0.5);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.8;
+        transform: translateY(-10px) translateX(2px) scale(0.8);
+    }
+    30% {
+        transform: translateY(-40px) translateX(-3px) scale(0.95);
+        opacity: 0.7;
+    }
+    50% {
+        transform: translateY(-70px) translateX(4px) scale(1);
+        opacity: 0.6;
+    }
+    70% {
+        transform: translateY(-100px) translateX(-2px) scale(0.9);
+        opacity: 0.4;
+    }
+    90% {
+        transform: translateY(-120px) translateX(1px) scale(0.8);
+        opacity: 0.2;
+    }
+    100% {
+        transform: translateY(-140px) translateX(0) scale(0.6);
+        opacity: 0;
+    }
+}
+
+/* ===================
+   FISH SWIMMING ANIMATION (for the fish in the image)
+   Makes the underwater image sway gently like the fish is swimming
+   =================== */
+.fishing-img.fish-swimming {
+    animation: fishInImageSwim 2.5s ease-in-out infinite;
+    transform-origin: center center;
+}
+
+@keyframes fishInImageSwim {
+    0%, 100% {
+        transform: translateX(0) translateY(0) rotate(0deg);
+    }
+    25% {
+        transform: translateX(3px) translateY(-2px) rotate(0.5deg);
+    }
+    50% {
+        transform: translateX(0) translateY(2px) rotate(-0.3deg);
+    }
+    75% {
+        transform: translateX(-3px) translateY(-1px) rotate(0.3deg);
+    }
+}
+
+/* Hide bubbles when completed */
+.fishing-cat-loading.fish-caught .underwater-bubbles {
+    animation: fadeOutWaves 0.3s ease-out forwards;
+}
+
+/* Stop fish swimming animation when caught */
+.fishing-cat-loading.fish-caught .fish-swimming {
+    animation: none;
+}
+
+/* ===================
+   WATER SPLASH TRANSITION EFFECT
+   Soft, illustration-style water splash
+   =================== */
+
+/* Splash container - holds water surge and droplets */
+.water-splash-transition {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+    opacity: 0;
+}
+
+/* Water surge - soft wave rising from bottom (matches illustration colors) */
+.water-surge {
+    position: absolute;
+    bottom: -100%;
+    left: -10%;
+    width: 120%;
+    height: 100%;
+    background: linear-gradient(180deg,
+        rgba(180, 210, 220, 0.0) 0%,
+        rgba(160, 195, 210, 0.4) 30%,
+        rgba(140, 180, 200, 0.6) 60%,
+        rgba(120, 165, 190, 0.75) 100%
+    );
+    border-radius: 60% 60% 0 0;
+}
+
+/* Water droplets - soft pastel blue matching illustration */
+.water-droplet {
+    position: absolute;
+    background: radial-gradient(ellipse at 30% 30%,
+        rgba(200, 225, 235, 0.95) 0%,
+        rgba(160, 195, 215, 0.8) 50%,
+        rgba(140, 180, 200, 0.6) 100%
+    );
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    opacity: 0;
+    box-shadow: 0 2px 4px rgba(100, 150, 180, 0.2);
+}
+
+/* Position droplets around the fish area (left-center) */
+.water-droplet.d1 { width: 10px; height: 14px; left: 15%; top: 35%; }
+.water-droplet.d2 { width: 7px; height: 10px; left: 25%; top: 28%; }
+.water-droplet.d3 { width: 12px; height: 16px; left: 35%; top: 22%; }
+.water-droplet.d4 { width: 8px; height: 11px; left: 45%; top: 30%; }
+.water-droplet.d5 { width: 6px; height: 9px; left: 30%; top: 40%; }
+
+/* ===================
+   FISH CAUGHT STATE (100% complete)
+   Soft splash transition matching illustration style
+   =================== */
+
+/* Activate splash transition */
+.fishing-cat-loading.fish-caught .water-splash-transition {
+    opacity: 1;
+}
+
+/* Water surge animation - gentle wave rising */
+.fishing-cat-loading.fish-caught .water-surge {
+    animation: waterSurge 0.7s ease-out forwards;
+}
+
+@keyframes waterSurge {
+    0% { bottom: -100%; opacity: 0.8; }
+    35% { bottom: 15%; opacity: 0.7; }
+    55% { bottom: 5%; opacity: 0.5; }
+    100% { bottom: -80%; opacity: 0; }
+}
+
+/* Droplet animations - soft arc upward then fade */
+.fishing-cat-loading.fish-caught .water-droplet.d1 {
+    animation: dropletSoft1 0.8s ease-out 0.1s forwards;
+}
+.fishing-cat-loading.fish-caught .water-droplet.d2 {
+    animation: dropletSoft2 0.75s ease-out 0.15s forwards;
+}
+.fishing-cat-loading.fish-caught .water-droplet.d3 {
+    animation: dropletSoft3 0.85s ease-out 0.08s forwards;
+}
+.fishing-cat-loading.fish-caught .water-droplet.d4 {
+    animation: dropletSoft4 0.7s ease-out 0.18s forwards;
+}
+.fishing-cat-loading.fish-caught .water-droplet.d5 {
+    animation: dropletSoft5 0.65s ease-out 0.2s forwards;
+}
+
+@keyframes dropletSoft1 {
+    0% { opacity: 0; transform: translateY(60px) scale(0.3); }
+    25% { opacity: 0.9; transform: translateY(0) scale(1); }
+    60% { opacity: 0.7; transform: translateY(-25px) scale(0.9); }
+    100% { opacity: 0; transform: translateY(-15px) scale(0.4); }
+}
+@keyframes dropletSoft2 {
+    0% { opacity: 0; transform: translateY(50px) scale(0.3); }
+    25% { opacity: 0.85; transform: translateY(0) scale(1); }
+    60% { opacity: 0.6; transform: translateY(-35px) scale(0.85); }
+    100% { opacity: 0; transform: translateY(-20px) scale(0.3); }
+}
+@keyframes dropletSoft3 {
+    0% { opacity: 0; transform: translateY(70px) scale(0.3); }
+    25% { opacity: 0.95; transform: translateY(0) scale(1.05); }
+    55% { opacity: 0.7; transform: translateY(-45px) scale(0.9); }
+    100% { opacity: 0; transform: translateY(-25px) scale(0.3); }
+}
+@keyframes dropletSoft4 {
+    0% { opacity: 0; transform: translateY(55px) scale(0.3); }
+    25% { opacity: 0.8; transform: translateY(0) scale(0.95); }
+    60% { opacity: 0.5; transform: translateY(-30px) scale(0.8); }
+    100% { opacity: 0; transform: translateY(-18px) scale(0.3); }
+}
+@keyframes dropletSoft5 {
+    0% { opacity: 0; transform: translateY(45px) scale(0.3); }
+    25% { opacity: 0.75; transform: translateY(0) scale(0.9); }
+    60% { opacity: 0.5; transform: translateY(-20px) scale(0.75); }
+    100% { opacity: 0; transform: translateY(-12px) scale(0.3); }
+}
+
+/* Hide loading water waves during transition */
+.fishing-cat-loading.fish-caught .water-waves-overlay {
+    animation: fadeOutWaves 0.3s ease-out forwards;
+}
+
+@keyframes fadeOutWaves {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Underwater image fades during splash */
+.fishing-cat-loading.fish-caught .fishing-underwater {
+    animation: fadeOutUnderwater 0.5s ease-out 0.3s forwards;
+}
+
+@keyframes fadeOutUnderwater {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Caught fish appears after splash peaks */
+.fishing-cat-loading.fish-caught .fishing-caught {
+    animation: fishReveal 0.6s cubic-bezier(0.3, 0.8, 0.4, 1) 0.35s forwards;
+}
+
+@keyframes fishReveal {
+    0% { opacity: 0; transform: scale(0.9) translateY(10px); }
+    50% { transform: scale(1.03) translateY(-5px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Legacy - unused styles hidden */
+.fishing-complete-img,
+.fishing-loading-scene,
+.scene-bg,
+.cat-waiting,
+.cat-waiting-img,
+.water-surface {
+    display: none;
+}
+
+/* ============================================
+   Floating Bubbles Animation
+   ============================================ */
+.fullscreen-particles {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10001;
+}
+
+/* Floating bubbles - more crystal clear */
+.floating-bubble {
+    position: fixed;
+    border-radius: 50%;
+    background: radial-gradient(
+        ellipse at 25% 25%,
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(255, 255, 255, 0.5) 15%,
+        rgba(245, 220, 200, 0.3) 30%,
+        rgba(245, 162, 110, 0.2) 50%,
+        rgba(200, 155, 93, 0.15) 70%,
+        rgba(160, 128, 104, 0.05) 90%,
+        transparent 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow:
+        inset 0 -10px 20px rgba(255, 255, 255, 0.4),
+        inset 6px 6px 15px rgba(255, 255, 255, 0.5),
+        inset -3px -3px 10px rgba(245, 162, 110, 0.1),
+        0 0 20px rgba(255, 255, 255, 0.2),
+        0 0 40px rgba(245, 162, 110, 0.1);
+    animation: floatUp linear forwards;
+    pointer-events: none;
+    z-index: 10000;
+    backdrop-filter: blur(1px);
+}
+
+@keyframes floatUp {
+    0% {
+        opacity: 0;
+        transform: translateY(0) translateX(0) scale(0.3);
+    }
+    8% {
+        opacity: 0.85;
+        transform: translateY(-40px) translateX(calc(var(--drift, 0px) * 0.1)) scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: translateY(-50vh) translateX(calc(var(--drift, 0px) * 0.5)) scale(0.95);
+    }
+    85% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-105vh) translateX(var(--drift, 0px)) scale(0.8);
+    }
+}
+
+/* Bubble wobble effect */
+.floating-bubble::before {
+    content: '';
+    position: absolute;
+    top: 15%;
+    left: 20%;
+    width: 30%;
+    height: 20%;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    filter: blur(2px);
+}
+
+/* Explosion particles */
+.explosion-particle {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.explosion-particle.explode {
+    animation: explodeParticle var(--duration, 0.6s) ease-out forwards;
+}
+
+@keyframes explodeParticle {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.9;
+    }
+    100% {
+        transform: translate(var(--tx), var(--ty)) scale(0);
+        opacity: 0;
+    }
+}
+
+/* Main bubble growing effect */
+.bubble.growing {
+    animation: bubbleGrow 0.4s ease-out;
+}
+
+@keyframes bubbleGrow {
+    0% { transform: scale(0.8); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Bubble popping */
+.bubble.popping,
+.floating-bubble.popping {
+    animation: bubblePop 0.3s ease-out forwards;
+}
+
+@keyframes bubblePop {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3); opacity: 0.5; }
+    100% { transform: scale(0); opacity: 0; }
+}
+
+/* Welcome overlay hidden state */
+.welcome-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ============================================
+   Header
+   ============================================ */
+.header {
+    padding: 24px 0;
+    border-bottom: 1px dashed var(--cocoa-creme);
+}
+
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 32px;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-icon {
+    font-size: 20px;
+    color: var(--cocoa-creme);
+}
+
+.logo-text {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+}
+
+.os-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.os-label-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.os-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-light);
+}
+
+.info-tooltip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    z-index: 100;
+}
+
+.info-icon {
+    font-size: 11px;
+    color: var(--text-light);
+    cursor: help;
+}
+
+.tooltip-content {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: auto;
+    left: 0;
+    width: 260px;
+    padding: 16px;
+    background: #3a3a3a;
+    color: #ffffff;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.5;
+    opacity: 0;
+    visibility: hidden;
+    z-index: 99999;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+}
+
+.tooltip-content strong {
+    font-family: var(--font-serif);
+}
+
+.info-tooltip:hover .tooltip-content {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* EML Help Tooltip - How to save email as .eml */
+.eml-help-tooltip {
+    display: inline-block;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+.eml-help-tooltip .info-icon {
+    font-size: 14px;
+    color: var(--cocoa-creme);
+    transition: color 0.2s ease;
+}
+
+.eml-help-tooltip:hover .info-icon {
+    color: var(--caramel);
+}
+
+.eml-tooltip-content {
+    width: 340px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+}
+
+.eml-instructions {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.eml-client {
+    padding: 10px;
+    background: var(--soft-white);
+    border-left: 3px solid var(--iced-coffee);
+}
+
+.eml-client .client-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    font-size: 12px;
+    color: var(--text-dark);
+    margin-bottom: 4px;
+}
+
+.eml-client .client-name i {
+    font-size: 14px;
+    color: var(--cocoa-creme);
+}
+
+.eml-client p {
+    font-size: 11px;
+    color: var(--text-body);
+    margin: 0;
+    line-height: 1.4;
+}
+
+.detection-badges {
+    display: flex;
+    gap: 8px;
+}
+
+.os-badge, .browser-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    background: var(--pure-white);
+    border: 1px solid rgba(160, 128, 104, 0.25);
+}
+
+/* ============================================
+   Main
+   ============================================ */
+.main-content {
+    padding: 48px 0 80px;
+}
+
+/* Tabs */
+.tab-navigation {
+    display: flex;
+    gap: 0;
+    margin-bottom: 48px;
+    border-bottom: 1px dashed var(--cocoa-creme);
+}
+
+.tab-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 24px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-light);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: color 0.2s;
+    margin-bottom: -1px;
+}
+
+.tab-button:hover {
+    color: var(--text-dark);
+}
+
+.tab-button.active {
+    color: var(--text-dark);
+    border-bottom-color: var(--caramel);
+}
+
+.tab-icon {
+    font-size: 14px;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* ============================================
+   Card
+   ============================================ */
+.card {
+    background: var(--pure-white);
+    border: 1px dashed var(--cocoa-creme);
+    margin-bottom: 32px;
+}
+
+.card-header {
+    padding: 28px 32px;
+    border-bottom: 1px dashed rgba(160, 128, 104, 0.3);
+}
+
+.card-title {
+    font-family: var(--font-serif);
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+}
+
+.card-description {
+    font-size: 13px;
+    color: var(--text-light);
+}
+
+.card-body {
+    padding: 28px 32px;
+}
+
+/* ============================================
+   Query Box
+   ============================================ */
+.query-box {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 28px;
+}
+
+.query-input {
+    flex: 1;
+    padding: 14px 16px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--text-dark);
+    background: var(--cloud-dancer);
+    border: 1px solid rgba(160, 128, 104, 0.3);
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.query-input::placeholder {
+    color: var(--text-light);
+}
+
+.query-input:focus {
+    border-color: var(--caramel);
+}
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 24px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--pure-white);
+    background: var(--cocoa-creme);
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background: var(--caramel);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-icon {
+    font-size: 12px;
+}
+
+/* ============================================
+   Recent Searches
+   ============================================ */
+.recent-searches {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--soft-white);
+    border: 1px dashed rgba(160, 128, 104, 0.25);
+    margin-bottom: 24px;
+}
+
+.recent-searches-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.recent-searches-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex: 1;
+}
+
+.recent-search-item {
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--text-body);
+    background: var(--pure-white);
+    border: 1px solid rgba(160, 128, 104, 0.2);
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.recent-search-item:hover {
+    border-color: var(--caramel);
+}
+
+.recent-searches-clear {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-light);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.recent-searches-clear:hover {
+    color: var(--critical);
+}
+
+/* ============================================
+   OS Quick Select
+   ============================================ */
+.os-quick-select {
+    padding-top: 24px;
+    border-top: 1px dashed rgba(160, 128, 104, 0.3);
+}
+
+.os-quick-label {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-light);
+    margin-bottom: 12px;
+}
+
+#quick-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.loading-text {
+    font-size: 12px;
+    color: var(--text-light);
+}
+
+.quick-btn,
+.os-quick-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--cocoa-creme);
+    background: var(--pure-white);
+    border: 1px dashed rgba(160, 128, 104, 0.4);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.quick-btn:hover,
+.os-quick-btn:hover {
+    border-color: var(--caramel);
+    border-style: solid;
+    color: var(--caramel);
+    background: rgba(193, 122, 80, 0.03);
+}
+
+.quick-btn.detected,
+.os-quick-btn.detected {
+    border-color: var(--caramel);
+    border-style: solid;
+    color: var(--caramel);
+    background: rgba(193, 122, 80, 0.06);
+}
+
+/* OS-specific button colors */
+.os-quick-btn.macos,
+.os-quick-btn.ios {
+    color: var(--text-body);
+}
+
+.os-quick-btn.windows {
+    color: var(--text-body);
+}
+
+.os-quick-btn.linux,
+.os-quick-btn.android {
+    color: var(--text-body);
+}
+
+.os-quick-btn.browser {
+    color: var(--text-body);
+}
+
+/* ============================================
+   Upload Box
+   ============================================ */
+.upload-box {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+}
+
+.file-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.file-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 160px;
+    background: var(--soft-white);
+    border: 1px dashed var(--cocoa-creme);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.file-label:hover {
+    background: rgba(193, 122, 80, 0.03);
+}
+
+.file-label.has-file {
+    border-color: var(--safe);
+    background: var(--safe-bg);
+}
+
+.upload-icon {
+    font-size: 24px;
+    color: var(--text-light);
+}
+
+.file-label:hover .upload-icon {
+    color: var(--cocoa-creme);
+}
+
+#file-name {
+    font-size: 13px;
+    color: var(--text-light);
+}
+
+.file-label.has-file #file-name {
+    color: var(--text-dark);
+}
+
+/* ============================================
+   Results
+   ============================================ */
+#cve-results, #phishing-results {
+    margin-top: 32px;
+}
+
+/* Summary Card */
+.summary-card {
+    background: var(--pure-white);
+    border: 1px dashed var(--cocoa-creme);
+    padding: 32px;
+    margin-bottom: 32px;
+}
+
+.summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.summary-title {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.summary-stats {
+    display: flex;
+    gap: 32px;
+}
+
+.stat-item {
+    text-align: right;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-light);
+}
+
+.summary-text {
+    font-size: 14px;
+    color: var(--text-body);
+    line-height: 1.7;
+}
+
+/* Action Plan */
+.action-plan {
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px dashed rgba(160, 128, 104, 0.3);
+}
+
+.action-plan-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-light);
+    margin-bottom: 16px;
+}
+
+.action-list {
+    list-style: none;
+}
+
+.action-item {
+    display: flex;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px dashed rgba(160, 128, 104, 0.2);
+    font-size: 13px;
+}
+
+.action-item:last-child {
+    border-bottom: none;
+}
+
+.action-number {
+    font-size: 11px;
+    color: var(--text-light);
+    min-width: 20px;
+}
+
+.action-text {
+    color: var(--text-body);
+}
+
+/* CVE List */
+.cve-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.cve-card {
+    background: var(--pure-white);
+    border: 1px dashed rgba(160, 128, 104, 0.4);
+    transition: border-color 0.2s;
+}
+
+.cve-card:hover {
+    border-color: var(--cocoa-creme);
+}
+
+.cve-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px 24px;
+    cursor: pointer;
+    gap: 16px;
+}
+
+.cve-header-left {
+    flex: 1;
+    min-width: 0;
+}
+
+.cve-title {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.cve-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text-light);
+}
+
+.cve-meta-id {
+    font-family: var(--font-mono);
+}
+
+.cve-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.severity-badge {
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.severity-critical { color: var(--critical); background: var(--critical-bg); }
+.severity-high { color: var(--high); background: var(--high-bg); }
+.severity-medium { color: var(--medium); background: var(--medium-bg); }
+.severity-low { color: var(--low); background: var(--low-bg); }
+.severity-safe { color: var(--safe); background: var(--safe-bg); }
+
+.kev-badge {
+    padding: 4px 8px;
+    font-size: 9px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--critical);
+    background: var(--critical-bg);
+}
+
+.expand-icon {
+    font-size: 12px;
+    color: var(--text-light);
+    transition: transform 0.2s;
+}
+
+.cve-card.expanded .expand-icon {
+    transform: rotate(180deg);
+}
+
+.cve-body {
+    display: none;
+    padding: 0 24px 24px;
+    border-top: 1px dashed rgba(160, 128, 104, 0.2);
+    margin-top: -1px;
+    padding-top: 20px;
+}
+
+.cve-card.expanded .cve-body {
+    display: block;
+}
+
+.cve-section {
+    margin-bottom: 20px;
+}
+
+.cve-section:last-child {
+    margin-bottom: 0;
+}
+
+.cve-section-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-light);
+    margin-bottom: 8px;
+}
+
+.cve-section-content {
+    font-size: 13px;
+    color: var(--text-body);
+    line-height: 1.65;
+}
+
+/* Remediation */
+.remediation {
+    padding: 16px 20px;
+    background: var(--soft-white);
+    border-left: 2px solid var(--caramel);
+}
+
+.remediation-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--caramel);
+    margin-bottom: 6px;
+}
+
+.remediation-text {
+    font-size: 13px;
+    color: var(--text-body);
+}
+
+/* Links */
+.cve-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.cve-link {
+    font-size: 12px;
+    color: var(--cocoa-creme);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color 0.2s;
+}
+
+.cve-link:hover {
+    color: var(--caramel);
+}
+
+/* ============================================
+   Phishing Results
+   ============================================ */
+.phishing-result {
+    background: var(--pure-white);
+    border: 1px dashed var(--cocoa-creme);
+}
+
+.phishing-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28px 32px;
+    border-bottom: 1px dashed rgba(160, 128, 104, 0.3);
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.phishing-verdict {
+    font-family: var(--font-serif);
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.risk-score {
+    text-align: right;
+}
+
+.risk-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-light);
+}
+
+.risk-value {
+    font-size: 32px;
+    font-weight: 500;
+}
+
+.risk-high .risk-value { color: var(--critical); }
+.risk-medium .risk-value { color: var(--medium); }
+.risk-low .risk-value { color: var(--safe); }
+
+.phishing-body {
+    padding: 28px 32px;
+}
+
+.phishing-section {
+    margin-bottom: 28px;
+}
+
+.phishing-section:last-child {
+    margin-bottom: 0;
+}
+
+.section-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-light);
+    margin-bottom: 12px;
+}
+
+.indicators-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.indicator-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--soft-white);
+    font-size: 13px;
+}
+
+.indicator-icon {
+    color: var(--high);
+    flex-shrink: 0;
+}
+
+.indicator-text {
+    color: var(--text-body);
+}
+
+/* ============================================
+   Loading & Error
+   ============================================ */
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 48px;
+    text-align: center;
+}
+
+.loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(160, 128, 104, 0.2);
+    border-top-color: var(--cocoa-creme);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Animate elements on load */
+.card {
+    animation: fadeUp 0.5s ease both;
+}
+
+.tab-content.active {
+    animation: fadeIn 0.4s ease;
+}
+
+.cve-card {
+    animation: fadeUp 0.4s ease both;
+}
+
+.cve-card:nth-child(1) { animation-delay: 0.05s; }
+.cve-card:nth-child(2) { animation-delay: 0.1s; }
+.cve-card:nth-child(3) { animation-delay: 0.15s; }
+.cve-card:nth-child(4) { animation-delay: 0.2s; }
+.cve-card:nth-child(5) { animation-delay: 0.25s; }
+
+.summary-card {
+    animation: fadeUp 0.5s ease both;
+}
+
+/* Subtle hover animations */
+.cve-card {
+    transition: border-color 0.2s, transform 0.2s ease;
+}
+
+.cve-card:hover {
+    transform: translateY(-2px);
+}
+
+.quick-btn {
+    transition: all 0.2s ease;
+}
+
+.quick-btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    transition: background 0.2s, transform 0.15s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+/* Welcome step animations */
+.welcome-step {
+    opacity: 0;
+    animation: fadeUp 0.4s ease forwards;
+}
+
+.welcome-step:nth-child(1) { animation-delay: 0.1s; }
+.welcome-step:nth-child(2) { animation-delay: 0.2s; }
+.welcome-step:nth-child(3) { animation-delay: 0.3s; }
+
+.loading-text {
+    font-size: 13px;
+    color: var(--text-light);
+}
+
+.error-message {
+    display: flex;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--critical-bg);
+    border-left: 2px solid var(--critical);
+    font-size: 13px;
+    color: var(--critical);
+}
+
+.no-results {
+    text-align: center;
+    padding: 64px 32px;
+}
+
+.no-results-icon {
+    font-size: 32px;
+    color: var(--text-light);
+    opacity: 0.4;
+    margin-bottom: 16px;
+}
+
+.no-results-title {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.no-results-text {
+    font-size: 13px;
+    color: var(--text-light);
+}
+
+/* ============================================
+   Footer
+   ============================================ */
+.footer {
+    padding: 32px 0;
+    border-top: 1px dashed var(--cocoa-creme);
+    margin-top: auto;
+}
+
+.footer-content {
+    text-align: center;
+}
+
+.footer-text {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-bottom: 4px;
+}
+
+.footer-text a {
+    color: var(--cocoa-creme);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.footer-text a:hover {
+    color: var(--caramel);
+}
+
+.footer-license {
+    opacity: 0.6;
+}
+
+.footer-note {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 8px;
+    opacity: 0.7;
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 20px;
+    }
+
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .query-box {
+        flex-direction: column;
+    }
+
+    .btn-primary {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .tab-button {
+        padding: 12px 16px;
+        font-size: 12px;
+    }
+
+    .card-header, .card-body {
+        padding: 20px 24px;
+    }
+
+    .summary-header {
+        flex-direction: column;
+    }
+
+    .summary-stats {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .stat-item {
+        text-align: left;
+    }
+}
+
+@media (max-width: 480px) {
+    html {
+        font-size: 15px;
+    }
+
+    .main-content {
+        padding: 32px 0 48px;
+    }
+
+    .welcome-content {
+        padding: 24px;
+    }
+
+    .cve-header {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .cve-header-right {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}

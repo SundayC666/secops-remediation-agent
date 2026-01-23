@@ -1,0 +1,51 @@
+# SecOps Remediation Agent v2.0
+# Full dependencies - No API keys required, local LLM only
+# All versions pinned for security (OWASP A06)
+
+# ============================================
+# Web Framework
+# ============================================
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+python-multipart==0.0.12
+
+# ============================================
+# Security Middleware
+# ============================================
+slowapi==0.1.9
+
+# ============================================
+# Configuration
+# ============================================
+pydantic==2.10.0
+pydantic-settings==2.7.0
+python-dotenv==1.0.1
+
+# ============================================
+# Vector Database & Embeddings
+# ============================================
+chromadb==0.5.23
+sentence-transformers==3.3.1
+
+# ============================================
+# HTTP Client (for CVE fetching)
+# ============================================
+httpx==0.28.1
+aiohttp==3.11.11
+
+# ============================================
+# Data Processing
+# ============================================
+numpy==1.26.4
+
+# ============================================
+# Email Parsing (for phishing analyzer)
+# ============================================
+email-validator==2.2.0
+
+# ============================================
+# LangChain + Ollama (Local LLM)
+# ============================================
+langchain==0.3.14
+langchain-ollama==0.2.2
+langchain-core==0.3.29

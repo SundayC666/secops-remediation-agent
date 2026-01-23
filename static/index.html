@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecOps Remediation Agent</title>
+    <!-- Font Awesome 6.5.1 (Free) - Licensed under CC BY 4.0 & SIL OFL 1.1 - https://fontawesome.com -->
+    <link rel="stylesheet" href="/static/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <!-- Welcome Overlay - First Time Loading -->
+    <div id="welcome-overlay" class="welcome-overlay">
+        <div class="welcome-content">
+            <div class="welcome-header-line">
+                <h1 class="welcome-title">SecOps Remediation Agent</h1>
+                <p class="welcome-subtitle">Analyzing your system for security vulnerabilities</p>
+            </div>
+
+            <div class="welcome-steps">
+                <div class="welcome-step" id="step-detect">
+                    <div class="step-icon">
+                        <i class="fas fa-laptop"></i>
+                    </div>
+                    <div class="step-text">
+                        <span class="step-label">Detecting your system...</span>
+                        <span class="step-detail" id="detect-detail"></span>
+                    </div>
+                    <div class="step-status">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                </div>
+
+                <div class="welcome-step" id="step-fetch">
+                    <div class="step-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div class="step-text">
+                        <span class="step-label">Fetching latest CVE data...</span>
+                        <span class="step-detail" id="fetch-detail"></span>
+                    </div>
+                    <div class="step-status">
+                        <i class="fas fa-circle" style="opacity: 0.3;"></i>
+                    </div>
+                </div>
+
+                <div class="welcome-step" id="step-analyze">
+                    <div class="step-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="step-text">
+                        <span class="step-label">Scanning for vulnerabilities...</span>
+                        <span class="step-detail" id="analyze-detail"></span>
+                    </div>
+                    <div class="step-status">
+                        <i class="fas fa-circle" style="opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="welcome-progress">
+                <!-- Progress Bar with Bubble -->
+                <div class="progress-bar">
+                    <div class="progress-fill" id="welcome-progress-fill"></div>
+                    <!-- Bubble follows progress -->
+                    <div class="bubble-container" id="bubble-container">
+                        <div class="bubble" id="welcome-bubble"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Full screen particle container for explosion -->
+            <div class="fullscreen-particles" id="fullscreen-particles"></div>
+        </div>
+    </div>
+
+    <!-- Header with OS Detection -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <i class="fas fa-shield-alt logo-icon"></i>
+                    <h1 class="logo-text">SecOps Remediation Agent</h1>
+                </div>
+                <div class="os-section">
+                    <div class="os-label-wrapper">
+                        <span class="os-label">Detected System</span>
+                        <div class="info-tooltip">
+                            <i class="fas fa-info-circle info-icon"></i>
+                            <div class="tooltip-content" id="os-tooltip">
+                                <strong>Detection Method</strong>
+                                <p>System detected via HTTP User-Agent header sent by your browser.</p>
+                                <div id="os-details"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="detection-badges">
+                        <div id="os-badge" class="os-badge">
+                            <i class="fas fa-desktop" style="margin-right: 0.5rem;"></i>
+                            <span id="os-text">Detecting...</span>
+                        </div>
+                        <div id="browser-badge" class="browser-badge" style="display: none;">
+                            <i id="browser-icon" class="fab fa-chrome"></i>
+                            <span id="browser-text"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Tab Navigation -->
+            <div class="tab-navigation">
+                <button class="tab-button active" data-tab="cve" onclick="switchTab('cve')">
+                    <i class="fas fa-bug tab-icon"></i>
+                    <span>CVE Analyzer</span>
+                </button>
+                <button class="tab-button" data-tab="phishing" onclick="switchTab('phishing')">
+                    <i class="fas fa-envelope tab-icon"></i>
+                    <span>Phishing Analyzer</span>
+                </button>
+            </div>
+
+            <!-- CVE Analyzer Tab -->
+            <div id="cve-tab" class="tab-content active">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Vulnerability Analysis</h2>
+                        <p class="card-description">Ask about potential security vulnerabilities in your system</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="query-box">
+                            <input
+                                type="text"
+                                id="cve-query"
+                                class="query-input"
+                                placeholder="e.g., Am I vulnerable to recent exploits?"
+                                onkeypress="if(event.key === 'Enter') analyzeCVEs()"
+                            >
+                            <button id="analyze-btn" class="btn-primary" onclick="analyzeCVEs()">
+                                <i class="fas fa-search btn-icon"></i>
+                                <span>Analyze</span>
+                            </button>
+                        </div>
+
+                        <!-- Recent Searches -->
+                        <div class="recent-searches" id="recent-searches" style="display: none;">
+                            <span class="recent-searches-label">
+                                <i class="fas fa-history"></i>
+                                Recent Searches
+                            </span>
+                            <div class="recent-searches-list" id="recent-searches-list">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                            <button class="recent-searches-clear" id="clear-recent" onclick="clearRecentSearches()">
+                                <i class="fas fa-trash-alt"></i>
+                                Clear
+                            </button>
+                        </div>
+
+                        <!-- OS Quick Select Buttons (loaded dynamically) -->
+                        <div class="os-quick-select" id="os-quick-select">
+                            <span class="os-quick-label">Quick Search by System</span>
+                            <div id="quick-buttons-container">
+                                <!-- Buttons loaded dynamically from API -->
+                                <span class="loading-text">Loading versions...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results will be inserted here -->
+                <div id="cve-results"></div>
+            </div>
+
+            <!-- Phishing Analyzer Tab -->
+            <div id="phishing-tab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            Email Phishing Analysis
+                            <div class="info-tooltip eml-help-tooltip">
+                                <i class="fas fa-question-circle info-icon"></i>
+                                <div class="tooltip-content eml-tooltip-content">
+                                    <strong>How to Save an Email as .eml</strong>
+                                    <div class="eml-instructions">
+                                        <div class="eml-client">
+                                            <span class="client-name"><i class="fab fa-microsoft"></i> Outlook</span>
+                                            <p>File → Save As → Select "Outlook Message Format - Unicode (*.msg)" or drag email to desktop</p>
+                                        </div>
+                                        <div class="eml-client">
+                                            <span class="client-name"><i class="fab fa-google"></i> Gmail</span>
+                                            <p>Open email → Click ⋮ (More) → "Download message"</p>
+                                        </div>
+                                        <div class="eml-client">
+                                            <span class="client-name"><i class="fab fa-apple"></i> Apple Mail</span>
+                                            <p>Select email → File → "Save As..." → Format: Raw Message Source</p>
+                                        </div>
+                                        <div class="eml-client">
+                                            <span class="client-name"><i class="fas fa-globe"></i> Webmail</span>
+                                            <p>Look for "Download", "Export", or "Show Original" option in email menu</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </h2>
+                        <p class="card-description">Upload a suspicious .eml file for AI-powered security analysis</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="upload-box">
+                            <input
+                                type="file"
+                                id="phishing-file"
+                                class="file-input"
+                                accept=".eml"
+                                onchange="handleFileSelect(event)"
+                            >
+                            <label for="phishing-file" id="phishing-file-label" class="file-label">
+                                <i class="fas fa-upload upload-icon"></i>
+                                <span id="file-name">Choose .eml file or drag here</span>
+                            </label>
+                            <button id="analyze-phishing-btn" class="btn-primary" onclick="analyzePhishing()" disabled>
+                                <i class="fas fa-search btn-icon"></i>
+                                Analyze Email
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phishing results will be inserted here -->
+                <div id="phishing-results"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p class="footer-text">
+                    <strong>Data Sources:</strong>
+                    <a href="https://cve.circl.lu/" target="_blank" rel="noopener">CIRCL CVE</a> ·
+                    <a href="https://nvd.nist.gov/" target="_blank" rel="noopener">NIST NVD</a> ·
+                    <a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" target="_blank" rel="noopener">CISA KEV</a>
+                    <span class="footer-license">(Public Domain / CC0 1.0)</span>
+                </p>
+                <p class="footer-text">
+                    <strong>Icons:</strong>
+                    <a href="https://fontawesome.com/" target="_blank" rel="noopener">Font Awesome 6</a>
+                    <span class="footer-license">(CC BY 4.0 & SIL OFL 1.1)</span>
+                </p>
+                <p class="footer-note">This project is not endorsed by CISA, DHS, NIST, or CIRCL</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/cve_analyzer.js"></script>
+    <script src="/static/js/phishing_analyzer.js"></script>
+</body>
+</html>

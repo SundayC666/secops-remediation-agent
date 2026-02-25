@@ -128,7 +128,7 @@ This project uses the Tranco List for domain reputation scoring:
 > *Proceedings of the 26th Annual Network and Distributed System Security Symposium (NDSS 2019)*.
 > https://doi.org/10.14722/ndss.2019.23386
 
-> **Disclaimer:** This project is not endorsed by CIRCL, NIST, CISA, or any government agency. Data is provided for educational and research purposes only.
+> **Disclaimer:** This project is not endorsed by NIST, CISA, or any government agency. Data is provided for educational and research purposes only.
 
 ## Quick Start
 
@@ -212,6 +212,33 @@ All responses include:
 | POST | /api/cve/deep-analyze | LLM-powered CVE analysis |
 | POST | /api/phishing/analyze | Analyze email for phishing |
 | GET | /api/versions/buttons | Get quick search buttons |
+
+## Agent Skills
+
+This project includes standalone security skills that work independently of the FastAPI server. Skills follow the [Agent Skills](https://agentskills.io) open standard and can be used directly in any compatible AI coding assistant.
+
+### Available Skills
+
+| Skill | Command | Description |
+|-------|---------|-------------|
+| **CVE Triage** | `/triage <product>` | NVD vulnerability lookup with CISA KEV cross-referencing and SLA prioritization |
+| **Phishing Analysis** | `/phishing <email.eml>` | Multi-layer phishing detection with domain trust scoring |
+
+### Standalone Usage
+
+Skills run independently via `uv run` with no server required:
+
+```bash
+# CVE triage
+uv run plugins/cve-triage/skills/cve-triage/scripts/nvd_lookup.py --product "windows 11"
+uv run plugins/cve-triage/skills/cve-triage/scripts/kev_check.py --cve-ids "CVE-2024-21351"
+
+# Phishing analysis
+uv run plugins/phishing-analysis/skills/phishing-analysis/scripts/analyze_email.py --file suspicious.eml
+uv run plugins/phishing-analysis/skills/phishing-analysis/scripts/check_domain.py --domain "example.xyz"
+```
+
+Scripts use [PEP 723](https://peps.python.org/pep-0723/) inline metadata for automatic dependency resolution.
 
 ## License
 

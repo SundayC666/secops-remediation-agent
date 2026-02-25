@@ -27,7 +27,6 @@ class Settings(BaseSettings):
     CVE_MAX_RESULTS: int = Field(default=50, description="Maximum number of CVEs to fetch")
 
     # Vector database configuration
-    LANCEDB_PATH: str = Field(default="lancedb", description="LanceDB storage path")
     EMBEDDING_MODEL: str = Field(default="sentence-transformers/all-MiniLM-L6-v2", description="Embedding model name")
     VECTOR_DIM: int = Field(default=384, description="Vector dimension")
 

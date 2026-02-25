@@ -24,22 +24,14 @@ ENV/
 
 # Claude Code (local settings)
 .claude/
+CLAUDE.md
 
 # Environment variables (contains API keys!)
 .env
 
 # Data files (can be regenerated)
 data/
-lancedb/
 data/*.json
-
-# Vector store (can be regenerated)
-vector_store/
-*.bin
-*.pkl
-
-# Test outputs
-test_vector_store/
 
 # Logs
 *.log
@@ -65,3 +57,7 @@ Thumbs.db
 
 # Test reports
 tests/test_report.json
+
+# Skill script caches
+cisa_kev_cache.json
+tranco_*.csv

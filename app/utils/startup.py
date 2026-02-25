@@ -41,7 +41,6 @@ async def initialize_system(app: FastAPI):
     try:
         logger.info("[1/2] Creating directories...")
         Path("data").mkdir(exist_ok=True)
-        Path("lancedb").mkdir(exist_ok=True)
 
         # Set initial state
         app.state.initialized = False

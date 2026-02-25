@@ -1,0 +1,8 @@
+{
+  "name": "phishing-analysis",
+  "version": "1.0.0",
+  "description": "Multi-layer phishing email analysis with sender verification, URL reputation, domain trust scoring, and attachment risk assessment",
+  "author": {
+    "name": "Sunday Chen"
+  }
+}

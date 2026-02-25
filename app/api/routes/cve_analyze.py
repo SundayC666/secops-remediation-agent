@@ -281,7 +281,7 @@ async def get_latest_cves(request: Request, limit: int = 5) -> CVEAnalyzeRespons
     """
     Get latest CVEs affecting the user's detected OS and browser
 
-    Auto-detects OS and browser from User-Agent and fetches CVEs from CIRCL API
+    Auto-detects OS and browser from User-Agent and fetches CVEs from NVD API
     sorted by severity then by date (newest first)
     """
     # Validate and constrain limit parameter
@@ -295,7 +295,7 @@ async def get_latest_cves(request: Request, limit: int = 5) -> CVEAnalyzeRespons
     other_system_findings = []
     search_description = "Latest vulnerabilities"
 
-    # If we detected a system, fetch CVEs from CIRCL API
+    # If we detected a system, fetch CVEs from NVD API
     if os_info.normalized != "Unknown":
         collector = CVEDataCollector()
 
@@ -361,7 +361,7 @@ async def get_latest_cves(request: Request, limit: int = 5) -> CVEAnalyzeRespons
             else:
                 search_description = f"Latest vulnerabilities for {os_info.normalized}"
 
-    # Fallback to RAG if no CIRCL results
+    # Fallback to RAG if no NVD results
     if not your_system_findings:
         if not await ensure_rag_initialized(request.app):
             raise HTTPException(
@@ -705,7 +705,7 @@ def _is_valid_cve(finding: CVEFinding) -> bool:
         return False
 
     # Don't filter UNKNOWN severity - we'll infer it from description later
-    # Many valid CVEs from CIRCL API don't have CVSS scores yet
+    # Many valid CVEs from NVD API don't have CVSS scores yet
 
     return True
 

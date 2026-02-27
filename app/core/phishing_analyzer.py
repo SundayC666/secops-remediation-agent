@@ -5,9 +5,7 @@ Provides detailed analysis with scoring breakdown and reference URLs
 
 import re
 import math
-import hashlib
 import json
-import os
 from typing import Dict, Any, List, Optional, Tuple
 from urllib.parse import urlparse
 from dataclasses import dataclass, field

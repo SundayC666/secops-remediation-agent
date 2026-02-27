@@ -215,7 +215,7 @@ All responses include:
 
 ## Agent Skills
 
-This project includes standalone security skills that work independently of the FastAPI server. Skills follow the [Agent Skills](https://agentskills.io) open standard and can be used directly in any compatible AI coding assistant.
+This project includes standalone security skills that work independently of the FastAPI server. Plugin structure follows the [Trail of Bits skills](https://github.com/trailofbits/skills) open standard and can be used directly in any compatible AI coding assistant.
 
 ### Available Skills
 

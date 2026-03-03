@@ -2,27 +2,26 @@
 
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green?logo=fastapi)
-![RAG](https://img.shields.io/badge/RAG-Sentence%20Transformers-orange?logo=huggingface)
+![Semantic Search](https://img.shields.io/badge/Semantic%20Search-Sentence%20Transformers-orange?logo=huggingface)
 ![Security](https://img.shields.io/badge/Security-NVD%20CVE-red?logo=shield)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-A RAG-powered security operations platform for vulnerability management and phishing detection. Combines **precise CPE-based CVE search** with **semantic search** using Sentence Transformers and ChromaDB. Features automatic OS fingerprinting, real-time CVE lookup from NIST NVD, and email threat analysis with LLM-powered risk scoring.
+A security tool for CVE vulnerability lookup and phishing email detection. Uses **CPE-based search** against NIST NVD with CISA KEV cross-referencing, and **heuristic-based phishing analysis** with domain reputation scoring. Includes a semantic search fallback using Sentence Transformers and ChromaDB.
 
 **[Live Demo](https://security-automation-platform.onrender.com)** *(Free tier - initial load may take 30-60 seconds)*
 
-## What This Tool Can Do
+## What This Tool Does
 
 | Category | Capability | Description |
 |----------|------------|-------------|
-| **CVE Analysis** | OS-specific vulnerability lookup | Auto-detect your OS and find relevant CVEs |
-| | CISA KEV flagging | Highlight actively exploited vulnerabilities |
-| | Remediation guidance | LLM-powered fix recommendations |
-| **Phishing Detection** | Email header analysis | Parse .eml files for suspicious sender patterns |
-| | URL reputation check | Identify malicious links in emails |
-| | Risk scoring | 0-100 automated threat assessment |
-| **Security Checks** | Input sanitization | Prevent XSS/injection in user inputs |
-| | Domain verification | Check sender domain authenticity |
-| | Anti-hallucination guardrails | Ensure LLM responses are grounded in CVE data |
+| **CVE Lookup** | CPE-based NVD search | Map product names to CPE identifiers and query NIST NVD |
+| | CISA KEV flagging | Flag CVEs that are actively exploited in the wild |
+| | Semantic search fallback | Find related CVEs via Sentence Transformers when CPE returns no results |
+| **Phishing Detection** | .eml file parsing | Extract sender, headers, body, URLs, and attachments |
+| | Heuristic analysis | 17 rule-based checks (spoofing, suspicious TLD, entropy, urgency, etc.) |
+| | Domain reputation | Check sender/URL domains against Tranco top-1M list |
+| | Risk scoring | 0-100 score based on weighted heuristic results |
+| **Optional LLM** | Deep analysis | Supplemental CVE/phishing analysis via local Ollama (not required) |
 
 ## Architecture
 
@@ -79,32 +78,27 @@ A RAG-powered security operations platform for vulnerability management and phis
 
 ## Features
 
-### CVE Vulnerability Analysis
-- **OS Fingerprinting**: Auto-detect OS via User-Agent parsing
-- **NVD CPE Search**: Precise vulnerability lookup using standardized CPE identifiers
-- **RAG Semantic Search**: Fallback search using Sentence Transformers for natural language queries
-- **CISA KEV Integration**: Known Exploited Vulnerabilities flagging with SLA tracking
+### CVE Vulnerability Lookup
+- **OS Detection**: Auto-detect OS via User-Agent parsing
+- **NVD CPE Search**: Map product names to CPE identifiers and query NVD API
+- **CISA KEV Cross-referencing**: Flag actively exploited vulnerabilities
+- **Semantic Search Fallback**: Sentence Transformers + ChromaDB when CPE search returns no results
 - **Vendor Security Links**: Direct links to 15+ vendor security pages
-- **LLM-powered Analysis**: Contextual remediation recommendations (Ollama)
+- **LLM Analysis (Optional)**: Supplemental remediation recommendations via local Ollama
 
 ### Phishing Email Analyzer
-- **.eml File Parsing**: Extract sender, subject, body, URLs
-- **Threat Indicator Extraction**: Detect suspicious patterns (11 analysis layers)
-- **Risk Scoring**: 0-100 automated risk assessment
-- **LLM Classification**: SAFE / SUSPICIOUS / MALICIOUS
-
-### UI/UX
-- Animated bubble loading with progress tracking
-- Real-time CVE search and filtering
-- Responsive modern interface
+- **.eml File Parsing**: Extract sender, subject, body, URLs, attachments
+- **Heuristic Detection**: 17 rule-based checks (sender spoofing, suspicious TLD, domain entropy, urgency tactics, SPF/DKIM, brand impersonation, etc.)
+- **Domain Reputation**: Tranco top-1M list lookup with Shannon entropy scoring for gibberish domain detection
+- **Risk Scoring**: 0-100 weighted score with risk level classification
 
 ## Tech Stack
 
 | Category | Technologies |
 |----------|-------------|
 | Backend | Python 3.9+, FastAPI, Pydantic |
-| AI/ML | Sentence Transformers (all-MiniLM-L6-v2), ChromaDB |
-| LLM | LangChain + Ollama (local inference) |
+| Semantic Search | Sentence Transformers (all-MiniLM-L6-v2), ChromaDB |
+| LLM (Optional) | LangChain + Ollama (local inference) |
 | Frontend | HTML5, CSS3, Vanilla JavaScript |
 
 ## Data Sources
@@ -162,12 +156,12 @@ For AI-powered deep analysis and remediation recommendations, install [Ollama](h
 
 ```bash
 # Install Ollama from https://ollama.ai
-ollama pull llama2
+ollama pull llama3.2:3b
 ```
 
 The application will automatically detect Ollama and enable:
-- **Deep CVE Analysis**: Context-aware remediation recommendations
-- **Phishing Classification**: AI-powered threat assessment
+- **Deep CVE Analysis**: Supplemental remediation recommendations
+- **Phishing Classification**: Supplemental threat assessment
 
 > **Note:** The [Live Demo](https://security-automation-platform.onrender.com) runs without Ollama. LLM features are only available when running locally with Ollama installed.
 

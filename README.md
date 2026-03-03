@@ -167,33 +167,12 @@ The application will automatically detect Ollama and enable:
 
 ## Security
 
-This project implements OWASP Top 10 security controls:
-
-| OWASP | Control | Implementation |
-|-------|---------|----------------|
-| A01 | Broken Access Control | CORS whitelist, security headers |
-| A03 | Injection | Input sanitization, parameterized queries |
-| A04 | Insecure Design | Rate limiting (slowapi) on all endpoints |
-| A05 | Security Misconfiguration | Security headers (X-Frame-Options, HSTS, X-Content-Type-Options) |
-| A06 | Vulnerable Components | All dependencies pinned to exact versions |
-| A10 | SSRF | URL validation blocks private IPs, localhost, cloud metadata |
-
-### Security Headers
-
-All responses include:
-- `X-Frame-Options: DENY` (clickjacking protection)
-- `X-Content-Type-Options: nosniff` (MIME sniffing protection)
-- `Strict-Transport-Security` (HTTPS enforcement)
-- `Referrer-Policy: strict-origin-when-cross-origin`
-
-### Rate Limiting
-
-| Endpoint | Limit |
-|----------|-------|
-| CVE Analysis | 30/min |
-| Phishing Analysis | 10/min |
-| Deep Analysis (LLM) | 10/min |
-| Version Refresh | 5/min |
+- **CORS**: Restricted to specific origins, GET/POST only
+- **Security Headers**: X-Frame-Options, X-Content-Type-Options, HSTS, Referrer-Policy
+- **Rate Limiting**: slowapi on all endpoints (10-60 req/min per endpoint)
+- **Input Sanitization**: html.escape, filename validation, content length limits
+- **SSRF Protection**: URL validator blocks private IPs, localhost, cloud metadata endpoints
+- **Dependencies**: All pinned to exact versions in requirements.txt
 
 ## API Endpoints
 

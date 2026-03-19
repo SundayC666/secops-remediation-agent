@@ -18,7 +18,7 @@ A security tool for CVE vulnerability lookup and phishing email detection. Uses 
 | | CISA KEV flagging | Flag CVEs that are actively exploited in the wild |
 | | Semantic search fallback | Find related CVEs via Sentence Transformers when CPE returns no results |
 | **Phishing Detection** | .eml file parsing | Extract sender, headers, body, URLs, and attachments |
-| | Heuristic analysis | 17 rule-based checks (spoofing, suspicious TLD, entropy, urgency, etc.) |
+| | Heuristic analysis | 11-layer heuristic checks (spoofing, suspicious TLD, entropy, urgency, etc.) |
 | | Domain reputation | Check sender/URL domains against Tranco top-1M list |
 | | Risk scoring | 0-100 score based on weighted heuristic results |
 | **Optional LLM** | Deep analysis | Supplemental CVE/phishing analysis via local Ollama (not required) |
@@ -88,7 +88,7 @@ A security tool for CVE vulnerability lookup and phishing email detection. Uses 
 
 ### Phishing Email Analyzer
 - **.eml File Parsing**: Extract sender, subject, body, URLs, attachments
-- **Heuristic Detection**: 17 rule-based checks (sender spoofing, suspicious TLD, domain entropy, urgency tactics, SPF/DKIM, brand impersonation, etc.)
+- **Heuristic Detection**: 11-layer heuristic checks (sender spoofing, suspicious TLD, domain entropy, urgency tactics, SPF/DKIM, brand impersonation, etc.)
 - **Domain Reputation**: Tranco top-1M list lookup with Shannon entropy scoring for gibberish domain detection
 - **Risk Scoring**: 0-100 weighted score with risk level classification
 

@@ -517,21 +517,6 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// File input handling for phishing analyzer
-function handleFileSelect(event) {
-    const file = event.target.files[0];
-    const fileNameSpan = document.getElementById('file-name');
-    const analyzeButton = document.getElementById('analyze-phishing-btn');
-
-    if (file) {
-        fileNameSpan.textContent = file.name;
-        analyzeButton.disabled = false;
-    } else {
-        fileNameSpan.textContent = 'Choose .eml file or drag here';
-        analyzeButton.disabled = true;
-    }
-}
-
 // Show loading state with underwater bubble animation (borderless)
 function showLoading(elementId) {
     const element = document.getElementById(elementId);
@@ -546,79 +531,6 @@ function showLoading(elementId) {
 
     // Start ocean bubble animation
     startOceanAnimation(loadingId);
-}
-
-// Show fishing cat loading animation for phishing analyzer
-// Loading: Show fishing_underwater.png (fish swimming). 100%: Switch to fishing.png (fish caught)
-function showFishingCatLoading(elementId) {
-    const element = document.getElementById(elementId);
-    const loadingId = `fishing-cat-${Date.now()}`;
-
-    // Design:
-    // - Loading: fishing_underwater.png (fish swimming in water) + gentle water shimmer + bubbles
-    // - The fish IN THE IMAGE appears to swim via subtle CSS animation
-    // - Complete: soft water splash transition -> fishing.png (fish caught)
-    element.innerHTML = `
-        <div class="fishing-cat-loading" id="${loadingId}">
-            <div class="fishing-scene-v2">
-                <!-- Loading state: fish swimming underwater (with swimming animation) -->
-                <img src="/static/images/fishing_underwater.png" alt="Fish swimming" class="fishing-img fishing-underwater fish-swimming">
-
-                <!-- Underwater bubbles -->
-                <div class="underwater-bubbles">
-                    <div class="underwater-bubble ub1"></div>
-                    <div class="underwater-bubble ub2"></div>
-                    <div class="underwater-bubble ub3"></div>
-                    <div class="underwater-bubble ub4"></div>
-                    <div class="underwater-bubble ub5"></div>
-                    <div class="underwater-bubble ub6"></div>
-                    <div class="underwater-bubble ub7"></div>
-                    <div class="underwater-bubble ub8"></div>
-                </div>
-
-                <!-- Gentle water shimmer for loading state -->
-                <div class="water-waves-overlay">
-                    <div class="water-wave w1"></div>
-                    <div class="water-wave w2"></div>
-                    <div class="water-wave w3"></div>
-                </div>
-
-                <!-- Water splash transition (soft, illustration style) -->
-                <div class="water-splash-transition">
-                    <div class="water-surge"></div>
-                    <div class="water-droplet d1"></div>
-                    <div class="water-droplet d2"></div>
-                    <div class="water-droplet d3"></div>
-                    <div class="water-droplet d4"></div>
-                    <div class="water-droplet d5"></div>
-                </div>
-
-                <!-- Complete state: fish caught (hidden initially) -->
-                <img src="/static/images/fishing.png" alt="Cat caught fish" class="fishing-img fishing-caught">
-            </div>
-        </div>
-    `;
-
-    // Start fishing animation progress (internal tracking)
-    startFishingProgress(loadingId);
-}
-
-// Start fishing progress animation (internal tracking, no visible progress bar)
-function startFishingProgress(loadingId) {
-    const container = document.getElementById(loadingId);
-    if (!container) return;
-
-    // Just store the container for later completion
-    container.dataset.started = 'true';
-}
-
-// Complete fishing animation (cat catches fish!)
-function completeFishingAnimation(elementId) {
-    const container = document.querySelector(`#${elementId} .fishing-cat-loading`);
-    if (!container) return;
-
-    // Trigger fish caught animation
-    container.classList.add('fish-caught');
 }
 
 // Ocean bubble animation controller (borderless)

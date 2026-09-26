@@ -49,11 +49,8 @@ Thumbs.db
 *.pyc
 *.pyo
 
-# Email samples for Phishing Sandbox
+# Email samples (may contain personal data)
 *.eml
-
-# Large image files (keep fishing images for phishing analyzer UI)
-# static/images/
 
 # Test reports
 tests/test_report.json

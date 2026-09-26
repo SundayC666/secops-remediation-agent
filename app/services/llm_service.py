@@ -1,6 +1,6 @@
 """
 LLM Service - Ollama Integration with LangChain
-Provides AI-powered analysis for CVE and Phishing detection
+Provides AI-powered analysis for CVE impact
 
 Uses llama3.2:3b for fast, stable responses
 """
@@ -142,74 +142,6 @@ PRIORITY: [CRITICAL/HIGH/MEDIUM/LOW]""")
             logger.error(f"LLM error for CVE {cve_id}: {e}")
             return self._fallback_cve_analysis(severity, affected_versions, user_system)
 
-    async def analyze_phishing_email(
-        self,
-        from_addr: str,
-        subject: str,
-        body: str,
-        urls: List[str] = None,
-        rule_based_score: int = 0
-    ) -> Dict[str, Any]:
-        """
-        Deep analysis of potential phishing email.
-
-        Returns:
-            {
-                "is_phishing": bool,
-                "confidence": "high" | "medium" | "low",
-                "risk_score_adjustment": int,  # -20 to +20
-                "explanation": str,
-                "key_indicators": List[str]
-            }
-        """
-        if not await self.is_available():
-            return self._fallback_phishing_analysis(rule_based_score)
-
-        prompt = PromptTemplate.from_template("""Analyze this email for phishing indicators. Be concise.
-
-From: {from_addr}
-Subject: {subject}
-Body (first 500 chars): {body}
-URLs found: {urls}
-Rule-based score: {rule_score}/100
-
-Consider:
-1. Sender legitimacy
-2. Urgency/pressure tactics
-3. Suspicious URLs
-4. Request for sensitive info
-5. Grammar/spelling issues
-
-Respond in this exact format:
-IS_PHISHING: [YES/NO/UNCERTAIN]
-CONFIDENCE: [HIGH/MEDIUM/LOW]
-SCORE_ADJUST: [number from -20 to +20]
-EXPLANATION: [One sentence]
-INDICATORS: [comma-separated list of 2-3 key indicators]""")
-
-        try:
-            chain = prompt | self.llm | StrOutputParser()
-            result = await asyncio.wait_for(
-                asyncio.to_thread(
-                    chain.invoke,
-                    {
-                        "from_addr": from_addr,
-                        "subject": subject,
-                        "body": body[:500],
-                        "urls": ", ".join(urls[:5]) if urls else "None",
-                        "rule_score": rule_based_score
-                    }
-                ),
-                timeout=self.REQUEST_TIMEOUT
-            )
-            return self._parse_phishing_response(result, rule_based_score)
-        except asyncio.TimeoutError:
-            logger.warning("LLM timeout for phishing analysis")
-            return self._fallback_phishing_analysis(rule_based_score)
-        except Exception as e:
-            logger.error(f"LLM error for phishing analysis: {e}")
-            return self._fallback_phishing_analysis(rule_based_score)
-
     def _parse_cve_response(self, response: str, severity: str) -> Dict[str, Any]:
         """Parse LLM response for CVE analysis"""
         result = {
@@ -240,41 +172,6 @@ INDICATORS: [comma-separated list of 2-3 key indicators]""")
 
         return result
 
-    def _parse_phishing_response(self, response: str, rule_score: int) -> Dict[str, Any]:
-        """Parse LLM response for phishing analysis"""
-        result = {
-            "is_phishing": None,
-            "confidence": "low",
-            "risk_score_adjustment": 0,
-            "explanation": "",
-            "key_indicators": []
-        }
-
-        try:
-            lines = response.strip().split("\n")
-            for line in lines:
-                line = line.strip()
-                if line.startswith("IS_PHISHING:"):
-                    value = line.split(":", 1)[1].strip().upper()
-                    result["is_phishing"] = value == "YES"
-                elif line.startswith("CONFIDENCE:"):
-                    result["confidence"] = line.split(":", 1)[1].strip().lower()
-                elif line.startswith("SCORE_ADJUST:"):
-                    try:
-                        adj = int(line.split(":", 1)[1].strip())
-                        result["risk_score_adjustment"] = max(-20, min(20, adj))
-                    except ValueError:
-                        pass
-                elif line.startswith("EXPLANATION:"):
-                    result["explanation"] = line.split(":", 1)[1].strip()
-                elif line.startswith("INDICATORS:"):
-                    indicators = line.split(":", 1)[1].strip()
-                    result["key_indicators"] = [i.strip() for i in indicators.split(",") if i.strip()]
-        except Exception as e:
-            logger.warning(f"Failed to parse phishing response: {e}")
-
-        return result
-
     def _fallback_cve_analysis(
         self,
         severity: str,
@@ -298,16 +195,6 @@ INDICATORS: [comma-separated list of 2-3 key indicators]""")
             "explanation": "LLM unavailable - based on version matching only",
             "recommended_action": "Check NVD for detailed impact information",
             "priority": priority_map.get(severity.upper(), "medium")
-        }
-
-    def _fallback_phishing_analysis(self, rule_score: int) -> Dict[str, Any]:
-        """Fallback when LLM is unavailable"""
-        return {
-            "is_phishing": None,
-            "confidence": "low",
-            "risk_score_adjustment": 0,
-            "explanation": "LLM unavailable - using rule-based analysis only",
-            "key_indicators": []
         }
 
 

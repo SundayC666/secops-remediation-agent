@@ -117,10 +117,6 @@
                     <i class="fas fa-bug tab-icon"></i>
                     <span>CVE Analyzer</span>
                 </button>
-                <button class="tab-button" data-tab="phishing" onclick="switchTab('phishing')">
-                    <i class="fas fa-envelope tab-icon"></i>
-                    <span>Phishing Analyzer</span>
-                </button>
             </div>
 
             <!-- CVE Analyzer Tab -->
@@ -174,64 +170,6 @@
                 <!-- Results will be inserted here -->
                 <div id="cve-results"></div>
             </div>
-
-            <!-- Phishing Analyzer Tab -->
-            <div id="phishing-tab" class="tab-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            Email Phishing Analysis
-                            <div class="info-tooltip eml-help-tooltip">
-                                <i class="fas fa-question-circle info-icon"></i>
-                                <div class="tooltip-content eml-tooltip-content">
-                                    <strong>How to Save an Email as .eml</strong>
-                                    <div class="eml-instructions">
-                                        <div class="eml-client">
-                                            <span class="client-name"><i class="fab fa-microsoft"></i> Outlook</span>
-                                            <p>File → Save As → Select "Outlook Message Format - Unicode (*.msg)" or drag email to desktop</p>
-                                        </div>
-                                        <div class="eml-client">
-                                            <span class="client-name"><i class="fab fa-google"></i> Gmail</span>
-                                            <p>Open email → Click ⋮ (More) → "Download message"</p>
-                                        </div>
-                                        <div class="eml-client">
-                                            <span class="client-name"><i class="fab fa-apple"></i> Apple Mail</span>
-                                            <p>Select email → File → "Save As..." → Format: Raw Message Source</p>
-                                        </div>
-                                        <div class="eml-client">
-                                            <span class="client-name"><i class="fas fa-globe"></i> Webmail</span>
-                                            <p>Look for "Download", "Export", or "Show Original" option in email menu</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </h2>
-                        <p class="card-description">Upload a suspicious .eml file for AI-powered security analysis</p>
-                    </div>
-                    <div class="card-body">
-                        <div class="upload-box">
-                            <input
-                                type="file"
-                                id="phishing-file"
-                                class="file-input"
-                                accept=".eml"
-                                onchange="handleFileSelect(event)"
-                            >
-                            <label for="phishing-file" id="phishing-file-label" class="file-label">
-                                <i class="fas fa-upload upload-icon"></i>
-                                <span id="file-name">Choose .eml file or drag here</span>
-                            </label>
-                            <button id="analyze-phishing-btn" class="btn-primary" onclick="analyzePhishing()" disabled>
-                                <i class="fas fa-search btn-icon"></i>
-                                Analyze Email
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Phishing results will be inserted here -->
-                <div id="phishing-results"></div>
-            </div>
         </div>
     </main>
 
@@ -243,9 +181,7 @@
                     <strong>Data Sources:</strong>
                     <a href="https://nvd.nist.gov/" target="_blank" rel="noopener">NIST NVD</a> ·
                     <a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" target="_blank" rel="noopener">CISA KEV</a>
-                    <span class="footer-license">(Public Domain / CC0 1.0)</span> ·
-                    <a href="https://tranco-list.eu/" target="_blank" rel="noopener">Tranco List</a>
-                    <span class="footer-license">(CC BY-NC-SA 4.0)</span>
+                    <span class="footer-license">(Public Domain / CC0 1.0)</span>
                 </p>
                 <p class="footer-text">
                     <strong>Icons:</strong>
@@ -260,6 +196,5 @@
     <!-- Scripts -->
     <script src="/static/js/app.js"></script>
     <script src="/static/js/cve_analyzer.js"></script>
-    <script src="/static/js/phishing_analyzer.js"></script>
 </body>
 </html>

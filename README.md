@@ -6,7 +6,9 @@
 ![Security](https://img.shields.io/badge/Security-NVD%20CVE-red?logo=shield)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-A security tool for CVE vulnerability lookup and phishing email detection. Uses **CPE-based search** against NIST NVD with CISA KEV cross-referencing, and **heuristic-based phishing analysis** with domain reputation scoring. Includes a semantic search fallback using Sentence Transformers and ChromaDB.
+> **Status (Sept 2026):** This project is being repositioned. The new direction is described in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (in progress). The phishing analyzer now lives on the [`phishing-analyzer`](https://github.com/SundayC666/secops-remediation-agent/tree/phishing-analyzer) branch.
+
+A security tool for CVE vulnerability lookup. Uses **CPE-based search** against NIST NVD with CISA KEV cross-referencing. Includes a semantic search fallback using Sentence Transformers and ChromaDB.
 
 **[Live Demo](https://security-automation-platform.onrender.com)** *(Free tier - initial load may take 30-60 seconds)*
 
@@ -17,36 +19,32 @@ A security tool for CVE vulnerability lookup and phishing email detection. Uses 
 | **CVE Lookup** | CPE-based NVD search | Map product names to CPE identifiers and query NIST NVD |
 | | CISA KEV flagging | Flag CVEs that are actively exploited in the wild |
 | | Semantic search fallback | Find related CVEs via Sentence Transformers when CPE returns no results |
-| **Phishing Detection** | .eml file parsing | Extract sender, headers, body, URLs, and attachments |
-| | Heuristic analysis | 11-layer heuristic checks (spoofing, suspicious TLD, entropy, urgency, etc.) |
-| | Domain reputation | Check sender/URL domains against Tranco top-1M list |
-| | Risk scoring | 0-100 score based on weighted heuristic results |
-| **Optional LLM** | Deep analysis | Supplemental CVE/phishing analysis via local Ollama (not required) |
+| **Optional LLM** | Deep analysis | Supplemental CVE analysis via local Ollama (not required) |
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                         Frontend (Static)                        │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐              │
-│  │   app.js    │  │ cve_analyzer│  │  phishing   │              │
-│  │ (OS Detect) │  │    .js      │  │ _analyzer.js│              │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘              │
-└─────────┼────────────────┼────────────────┼─────────────────────┘
-          │                │                │
-          ▼                ▼                ▼
+│  ┌─────────────┐  ┌─────────────┐                               │
+│  │   app.js    │  │ cve_analyzer│                               │
+│  │ (OS Detect) │  │    .js      │                               │
+│  └──────┬──────┘  └──────┬──────┘                               │
+└─────────┼────────────────┼──────────────────────────────────────┘
+          │                │
+          ▼                ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                      FastAPI Backend                             │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐              │
-│  │ /api/os-    │  │ /api/cve/   │  │/api/phishing│              │
-│  │   detect    │  │   analyze   │  │  /analyze   │              │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘              │
-│         │                │                │                      │
-│         ▼                ▼                ▼                      │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐              │
-│  │ OS Detector │  │ CVE Search  │  │  Phishing   │              │
-│  │(User-Agent) │  │  Pipeline   │  │  Analyzer   │              │
-│  └─────────────┘  └──────┬──────┘  └─────────────┘              │
+│  ┌─────────────┐  ┌─────────────┐                               │
+│  │ /api/os-    │  │ /api/cve/   │                               │
+│  │   detect    │  │   analyze   │                               │
+│  └──────┬──────┘  └──────┬──────┘                               │
+│         │                │                                       │
+│         ▼                ▼                                       │
+│  ┌─────────────┐  ┌─────────────┐                               │
+│  │ OS Detector │  │ CVE Search  │                               │
+│  │(User-Agent) │  │  Pipeline   │                               │
+│  └─────────────┘  └──────┬──────┘                               │
 └──────────────────────────┼──────────────────────────────────────┘
                            │
          ┌─────────────────┼─────────────────┐
@@ -86,12 +84,6 @@ A security tool for CVE vulnerability lookup and phishing email detection. Uses 
 - **Vendor Security Links**: Direct links to 15+ vendor security pages
 - **LLM Analysis (Optional)**: Supplemental remediation recommendations via local Ollama
 
-### Phishing Email Analyzer
-- **.eml File Parsing**: Extract sender, subject, body, URLs, attachments
-- **Heuristic Detection**: 11-layer heuristic checks (sender spoofing, suspicious TLD, domain entropy, urgency tactics, SPF/DKIM, brand impersonation, etc.)
-- **Domain Reputation**: Tranco top-1M list lookup with Shannon entropy scoring for gibberish domain detection
-- **Risk Scoring**: 0-100 weighted score with risk level classification
-
 ## Tech Stack
 
 | Category | Technologies |
@@ -109,18 +101,6 @@ This project uses the following public APIs and data sources:
 |--------|-----|---------|---------|
 | **NIST NVD** | https://services.nvd.nist.gov/rest/json/cves/2.0 | Primary CVE data (CPE-based search) | Public Domain |
 | **CISA KEV** | https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json | Known Exploited Vulnerabilities | CC0 1.0 |
-| **Tranco List** | https://tranco-list.eu | Domain reputation (top 1M sites) | CC BY-NC-SA 4.0 |
-| Google Safe Browsing | https://safebrowsing.googleapis.com | URL reputation (optional) | Requires API key |
-| VirusTotal | https://www.virustotal.com/api/v3 | URL analysis (optional) | Requires API key |
-
-### Tranco List Citation
-
-This project uses the Tranco List for domain reputation scoring:
-
-> Le Pochat, V., Van Goethem, T., Tajalizadehkhoob, S., Korczyński, M., & Joosen, W. (2019).
-> Tranco: A Research-Oriented Top Sites Ranking Hardened Against Manipulation.
-> *Proceedings of the 26th Annual Network and Distributed System Security Symposium (NDSS 2019)*.
-> https://doi.org/10.14722/ndss.2019.23386
 
 > **Disclaimer:** This project is not endorsed by NIST, CISA, or any government agency. Data is provided for educational and research purposes only.
 
@@ -161,7 +141,6 @@ ollama pull llama3.2:3b
 
 The application will automatically detect Ollama and enable:
 - **Deep CVE Analysis**: Supplemental remediation recommendations
-- **Phishing Classification**: Supplemental threat assessment
 
 > **Note:** The [Live Demo](https://security-automation-platform.onrender.com) runs without Ollama. LLM features are only available when running locally with Ollama installed.
 
@@ -171,7 +150,6 @@ The application will automatically detect Ollama and enable:
 - **Security Headers**: X-Frame-Options, X-Content-Type-Options, HSTS, Referrer-Policy
 - **Rate Limiting**: slowapi on all endpoints (10-60 req/min per endpoint)
 - **Input Sanitization**: html.escape, filename validation, content length limits
-- **SSRF Protection**: URL validator blocks private IPs, localhost, cloud metadata endpoints
 - **Dependencies**: All pinned to exact versions in requirements.txt
 
 ## API Endpoints
@@ -183,7 +161,6 @@ The application will automatically detect Ollama and enable:
 | GET | /api/cve/latest | Get latest CVEs for detected OS |
 | POST | /api/cve/analyze | Analyze CVE for specific query |
 | POST | /api/cve/deep-analyze | LLM-powered CVE analysis |
-| POST | /api/phishing/analyze | Analyze email for phishing |
 | GET | /api/versions/buttons | Get quick search buttons |
 
 ## Agent Skills
@@ -195,7 +172,6 @@ This project includes standalone security skills that work independently of the 
 | Skill | Command | Description |
 |-------|---------|-------------|
 | **CVE Triage** | `/triage <product>` | NVD vulnerability lookup with CISA KEV cross-referencing and SLA prioritization |
-| **Phishing Analysis** | `/phishing <email.eml>` | Multi-layer phishing detection with domain trust scoring |
 
 ### Standalone Usage
 
@@ -205,10 +181,6 @@ Skills run independently via `uv run` with no server required:
 # CVE triage
 uv run plugins/cve-triage/skills/cve-triage/scripts/nvd_lookup.py --product "windows 11"
 uv run plugins/cve-triage/skills/cve-triage/scripts/kev_check.py --cve-ids "CVE-2024-21351"
-
-# Phishing analysis
-uv run plugins/phishing-analysis/skills/phishing-analysis/scripts/analyze_email.py --file suspicious.eml
-uv run plugins/phishing-analysis/skills/phishing-analysis/scripts/check_domain.py --domain "example.xyz"
 ```
 
 Scripts use [PEP 723](https://peps.python.org/pep-0723/) inline metadata for automatic dependency resolution.

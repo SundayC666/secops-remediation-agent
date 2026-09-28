@@ -2,13 +2,12 @@
 
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green?logo=fastapi)
-![Semantic Search](https://img.shields.io/badge/Semantic%20Search-Sentence%20Transformers-orange?logo=huggingface)
 ![Security](https://img.shields.io/badge/Security-NVD%20CVE-red?logo=shield)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 > **Status (Sept 2026):** This project is being repositioned. The new direction is described in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (in progress). The phishing analyzer now lives on the [`phishing-analyzer`](https://github.com/SundayC666/secops-remediation-agent/tree/phishing-analyzer) branch.
 
-A security tool for CVE vulnerability lookup. Uses **CPE-based search** against NIST NVD with CISA KEV cross-referencing. Includes a semantic search fallback using Sentence Transformers and ChromaDB.
+A security tool for CVE vulnerability lookup. Uses **CPE-based search** against NIST NVD with CISA KEV cross-referencing.
 
 **[Live Demo](https://security-automation-platform.onrender.com)** *(Free tier - initial load may take 30-60 seconds)*
 
@@ -18,7 +17,6 @@ A security tool for CVE vulnerability lookup. Uses **CPE-based search** against 
 |----------|------------|-------------|
 | **CVE Lookup** | CPE-based NVD search | Map product names to CPE identifiers and query NIST NVD |
 | | CISA KEV flagging | Flag CVEs that are actively exploited in the wild |
-| | Semantic search fallback | Find related CVEs via Sentence Transformers when CPE returns no results |
 | **Optional LLM** | Deep analysis | Supplemental CVE analysis via local Ollama (not required) |
 
 ## Architecture
@@ -47,32 +45,19 @@ A security tool for CVE vulnerability lookup. Uses **CPE-based search** against 
 │  └─────────────┘  └──────┬──────┘                               │
 └──────────────────────────┼──────────────────────────────────────┘
                            │
-         ┌─────────────────┼─────────────────┐
-         ▼                 ▼                 ▼
-  ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
-  │  NIST NVD   │   │  RAG Engine │   │  CISA KEV   │
-  │ CPE Search  │   │ (Fallback)  │   │   Catalog   │
-  │  (Primary)  │   │             │   │             │
-  └─────────────┘   └──────┬──────┘   └─────────────┘
-                           │
               ┌────────────┴────────────┐
               ▼                         ▼
        ┌─────────────┐          ┌─────────────┐
-       │  Sentence   │          │  ChromaDB   │
-       │ Transformers│          │ Vector Store│
+       │  NIST NVD   │          │  CISA KEV   │
+       │ CPE Search  │          │   Catalog   │
        └─────────────┘          └─────────────┘
 ```
 
 ### CVE Search Pipeline
 
-1. **NVD CPE Search (Primary)**: Precise search using CPE (Common Platform Enumeration) identifiers
+**NVD CPE Search**: Precise search using CPE (Common Platform Enumeration) identifiers
    - Maps keywords like "Windows 11" to multiple version-specific CPEs (21h2, 22h2, 23h2, 24h2)
    - Returns recent CVEs (2024-2026) with deduplication across versions
-
-2. **RAG Semantic Search (Fallback)**: When CPE search returns no results
-   - Uses Sentence Transformers (`all-MiniLM-L6-v2`) for semantic understanding
-   - ChromaDB stores CVE embeddings for fast similarity search
-   - Finds related vulnerabilities even with different terminology
 
 ## Features
 
@@ -80,7 +65,6 @@ A security tool for CVE vulnerability lookup. Uses **CPE-based search** against 
 - **OS Detection**: Auto-detect OS via User-Agent parsing
 - **NVD CPE Search**: Map product names to CPE identifiers and query NVD API
 - **CISA KEV Cross-referencing**: Flag actively exploited vulnerabilities
-- **Semantic Search Fallback**: Sentence Transformers + ChromaDB when CPE search returns no results
 - **Vendor Security Links**: Direct links to 15+ vendor security pages
 - **LLM Analysis (Optional)**: Supplemental remediation recommendations via local Ollama
 
@@ -89,7 +73,6 @@ A security tool for CVE vulnerability lookup. Uses **CPE-based search** against 
 | Category | Technologies |
 |----------|-------------|
 | Backend | Python 3.9+, FastAPI, Pydantic |
-| Semantic Search | Sentence Transformers (all-MiniLM-L6-v2), ChromaDB |
 | LLM (Optional) | LangChain + Ollama (local inference) |
 | Frontend | HTML5, CSS3, Vanilla JavaScript |
 

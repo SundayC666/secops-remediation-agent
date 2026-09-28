@@ -25,7 +25,6 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.core.config import settings
 from app.api.routes import health, os_detect, cve_analyze, versions
-from app.utils.startup import initialize_system
 
 # Rate limiter setup
 limiter = Limiter(key_func=get_remote_address)
@@ -77,8 +76,6 @@ async def startup_event():
     print("=" * 70)
     print("SecOps Remediation Agent v2.0")
     print("=" * 70)
-
-    await initialize_system(app)
 
     print("=" * 70)
     print(f"System ready! Server running on {settings.SERVER_URL}")

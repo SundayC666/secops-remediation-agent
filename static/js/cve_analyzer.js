@@ -342,55 +342,10 @@ document.addEventListener('DOMContentLoaded', () => {
     renderRecentSearches();
 });
 
-// Check system initialization status
-async function checkSystemStatus() {
-    try {
-        const response = await fetch('/api/status');
-        if (response.ok) {
-            return await response.json();
-        }
-    } catch (e) {
-        console.error('Status check failed:', e);
-    }
-    return { rag_ready: false, rag_initializing: false, cve_count: 0 };
-}
-
-// Show initializing message
-function showInitializing(elementId) {
-    const element = document.getElementById(elementId);
-    element.innerHTML = `
-        <div class="card">
-            <div class="card-body text-center">
-                <div class="loading" style="margin: 2rem auto;"></div>
-                <p style="color: var(--text-primary); margin-top: 1rem; font-weight: 500;">
-                    System Initializing
-                </p>
-                <p style="color: var(--text-secondary); font-size: 0.9rem;">
-                    Loading CVE database and AI models...<br>
-                    This may take 1-2 minutes on first startup.
-                </p>
-            </div>
-        </div>
-    `;
-}
-
 // Load latest CVEs automatically on page load
 // Set to false to not auto-load CVEs on page load (show empty state instead)
 async function loadLatestCVEs(showEmptyOnNoResults = true, showLoadingAnimation = true) {
     const resultsDiv = document.getElementById('cve-results');
-
-    // Check if system is ready
-    const status = await checkSystemStatus();
-    if (!status.rag_ready) {
-        if (status.rag_initializing) {
-            showInitializing('cve-results');
-            pollUntilReadyThenLoad();
-            return;
-        } else if (status.error) {
-            showError('cve-results', `System error: ${status.error}`);
-            return;
-        }
-    }
 
     // Show loading state (only if requested - skip during welcome sequence)
     if (showLoadingAnimation) {
@@ -399,12 +354,6 @@ async function loadLatestCVEs(showEmptyOnNoResults = true, showLoadingAnimation 
 
     try {
         const response = await fetch('/api/cve/latest?limit=5');
-
-        if (response.status === 503) {
-            showInitializing('cve-results');
-            pollUntilReadyThenLoad();
-            return;
-        }
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
@@ -502,19 +451,6 @@ async function analyzeCVEs() {
         return;
     }
 
-    // Check if system is ready
-    const status = await checkSystemStatus();
-    if (!status.rag_ready) {
-        if (status.rag_initializing) {
-            showInitializing('cve-results');
-            pollUntilReady(query);
-            return;
-        } else if (status.error) {
-            showError('cve-results', `System error: ${status.error}`);
-            return;
-        }
-    }
-
     // Show loading state
     showLoading('cve-results');
 
@@ -526,12 +462,6 @@ async function analyzeCVEs() {
             },
             body: JSON.stringify({ query: query, limit: 5 })
         });
-
-        if (response.status === 503) {
-            showInitializing('cve-results');
-            pollUntilReady(query);
-            return;
-        }
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
@@ -547,73 +477,6 @@ async function analyzeCVEs() {
         console.error('CVE analysis failed:', error);
         showError('cve-results', `Analysis failed: ${error.message}`);
     }
-}
-
-// Poll until system is ready, then load latest CVEs
-async function pollUntilReadyThenLoad() {
-    const maxAttempts = 60;
-    let attempts = 0;
-
-    const poll = async () => {
-        attempts++;
-        const status = await checkSystemStatus();
-
-        if (status.rag_ready) {
-            loadLatestCVEs();
-        } else if (status.error) {
-            showError('cve-results', `Initialization failed: ${status.error}`);
-        } else if (attempts < maxAttempts) {
-            const element = document.getElementById('cve-results');
-            if (element && status.cve_count > 0) {
-                const progressP = element.querySelector('p:last-child');
-                if (progressP) {
-                    progressP.innerHTML = `
-                        Loading CVE database and AI models...<br>
-                        Progress: ${status.cve_count} CVEs indexed
-                    `;
-                }
-            }
-            setTimeout(poll, 2000);
-        } else {
-            showError('cve-results', 'Initialization timed out. Please refresh the page.');
-        }
-    };
-
-    setTimeout(poll, 2000);
-}
-
-// Poll until system is ready, then run the query
-async function pollUntilReady(query) {
-    const maxAttempts = 60;
-    let attempts = 0;
-
-    const poll = async () => {
-        attempts++;
-        const status = await checkSystemStatus();
-
-        if (status.rag_ready) {
-            document.getElementById('cve-query').value = query;
-            analyzeCVEs();
-        } else if (status.error) {
-            showError('cve-results', `Initialization failed: ${status.error}`);
-        } else if (attempts < maxAttempts) {
-            const element = document.getElementById('cve-results');
-            if (element && status.cve_count > 0) {
-                const progressP = element.querySelector('p:last-child');
-                if (progressP) {
-                    progressP.innerHTML = `
-                        Loading CVE database and AI models...<br>
-                        Progress: ${status.cve_count} CVEs indexed
-                    `;
-                }
-            }
-            setTimeout(poll, 2000);
-        } else {
-            showError('cve-results', 'Initialization timed out. Please refresh the page.');
-        }
-    };
-
-    setTimeout(poll, 2000);
 }
 
 // Render CVE analysis results

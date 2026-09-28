@@ -26,10 +26,6 @@ class Settings(BaseSettings):
     CVE_LOOKBACK_DAYS: int = Field(default=30, description="Number of days to fetch CVEs")
     CVE_MAX_RESULTS: int = Field(default=50, description="Maximum number of CVEs to fetch")
 
-    # Vector database configuration
-    EMBEDDING_MODEL: str = Field(default="sentence-transformers/all-MiniLM-L6-v2", description="Embedding model name")
-    VECTOR_DIM: int = Field(default=384, description="Vector dimension")
-
     # API configuration
     NVD_API_KEY: Optional[str] = Field(default=None, description="NIST NVD API key (optional)")
 

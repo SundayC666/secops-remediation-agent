@@ -484,7 +484,7 @@ async function runWelcomeSequence() {
             console.warn('Health check failed:', e);
         }
 
-        WelcomeOverlay.updateStep('fetch', 'completed', 'CIRCL CVE database');
+        WelcomeOverlay.updateStep('fetch', 'completed', 'NIST NVD');
 
         // Small delay
         await sleep(300);

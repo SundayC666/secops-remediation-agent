@@ -25,7 +25,6 @@ from app.core.input_sanitizer import (
     log_security_event,
     escape_for_display
 )
-from app.utils.startup import ensure_rag_initialized
 from app.services.cve_collector import CVEDataCollector
 from app.services.llm_service import get_llm_service, check_llm_status
 from app.core.sla_tracker import get_sla_tracker, SLAStatus
@@ -361,37 +360,6 @@ async def get_latest_cves(request: Request, limit: int = 5) -> CVEAnalyzeRespons
             else:
                 search_description = f"Latest vulnerabilities for {os_info.normalized}"
 
-    # Fallback to RAG if no NVD results
-    if not your_system_findings:
-        if not await ensure_rag_initialized(request.app):
-            raise HTTPException(
-                status_code=503,
-                detail="System is initializing. Please try again in a moment."
-            )
-
-        rag_engine = request.app.state.rag_engine
-
-        if os_info.normalized == "Unknown":
-            search_description = "Latest vulnerabilities (all systems)"
-            query = "security vulnerabilities"
-        else:
-            search_description = f"Latest vulnerabilities for {os_info.normalized}"
-            query = f"{os_info.normalized} vulnerabilities security"
-
-        # Only get CVEs for user's system - no "other" category needed
-        results = await rag_engine.search(
-            query=query,
-            os_tags=os_info.tags if os_info.normalized != "Unknown" else None,
-            limit=limit * 2,
-            include_other_os=False  # Don't include other OS CVEs
-        )
-
-        # Combine all results - they're all relevant to user's search
-        all_rag_results = results.get("your_system", []) + results.get("other_systems", [])
-        your_system_findings = _filter_and_sort_findings([
-            _cve_to_finding(cve) for cve in all_rag_results
-        ])[:limit]
-
     # Generate customized action plan
     action_plan = _generate_customized_action_plan(your_system_findings)
 
@@ -430,8 +398,7 @@ async def analyze_cves(request: Request, body: CVEAnalyzeRequest) -> CVEAnalyzeR
     2. Detects user's OS from User-Agent header
     3. Checks if query mentions specific OS/product
     4. If OS-specific, queries NVD directly for accurate results
-    5. Otherwise, searches local RAG index
-    6. Returns findings with remediation suggestions
+    5. Returns findings with remediation suggestions
     """
     # Get client IP for security logging
     client_ip = request.client.host if request.client else "unknown"
@@ -481,39 +448,6 @@ async def analyze_cves(request: Request, body: CVEAnalyzeRequest) -> CVEAnalyzeR
         ])[:body.limit]
         search_source = "nvd_cpe"
         logger.info(f"Found {len(your_system_findings)} CVEs from NVD CPE search for: {search_keyword}")
-
-    # =================================================================
-    # STEP 2: Fallback to RAG semantic search if NVD returns nothing
-    # =================================================================
-    if not your_system_findings:
-        logger.info(f"NVD CPE search returned no results, falling back to RAG for: {body.query}")
-
-        # Ensure RAG engine is initialized
-        if not await ensure_rag_initialized(request.app):
-            raise HTTPException(
-                status_code=503,
-                detail="System is initializing. Please try again in a moment."
-            )
-
-        rag_engine = request.app.state.rag_engine
-
-        # Perform semantic search with RAG
-        results = await rag_engine.search(
-            query=body.query,
-            os_tags=None,  # Don't filter by OS for manual searches
-            limit=body.limit * 2,
-            include_other_os=False
-        )
-
-        # Get RAG results
-        rag_results = results.get("your_system", [])
-
-        if rag_results:
-            your_system_findings = _filter_and_sort_findings([
-                _cve_to_finding(cve) for cve in rag_results
-            ])[:body.limit]
-            search_source = "rag_semantic"
-            logger.info(f"Found {len(your_system_findings)} CVEs from RAG semantic search")
 
     # Log search source for debugging
     logger.info(f"Search completed. Source: {search_source}, Results: {len(your_system_findings)}")

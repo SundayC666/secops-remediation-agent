@@ -782,47 +782,6 @@ class CVEDataCollector:
 
         return list(tags)
 
-    # Keep backward compatibility - these methods are used by other parts of the system
-    async def fetch_all(self, force_refresh: bool = False) -> List[Dict[str, Any]]:
-        """
-        Fetch recent CVEs for RAG initialization.
-        This is a simplified version that fetches high-severity CVEs.
-        """
-        logger.info("Fetching recent high-severity CVEs for initialization...")
-
-        # Fetch recent critical/high CVEs
-        params = {
-            "cvssV3Severity": "CRITICAL",
-            "resultsPerPage": 100,
-            "startIndex": 0
-        }
-
-        headers = {"User-Agent": "SecOps-CVE-Collector/1.0"}
-        if self.nvd_api_key:
-            headers["apiKey"] = self.nvd_api_key
-
-        cves = []
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.get(self.NVD_API_URL, params=params, headers=headers)
-                if response.status_code == 200:
-                    data = response.json()
-                    vulnerabilities = data.get("vulnerabilities", [])
-
-                    kev_ids = await self._get_kev_ids()
-
-                    for vuln in vulnerabilities:
-                        p = self._process_nvd_cve(vuln)
-                        if p:
-                            p["is_exploited"] = p["cve_id"] in kev_ids
-                            cves.append(p)
-
-                    logger.info(f"Fetched {len(cves)} CVEs for initialization")
-        except Exception as e:
-            logger.error(f"Failed to fetch CVEs for initialization: {e}")
-
-        return cves
-
     async def fetch_cve_by_id(self, cve_id: str) -> Optional[Dict[str, Any]]:
         """
         Fetch a specific CVE by ID.

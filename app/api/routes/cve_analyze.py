@@ -25,11 +25,18 @@ from app.core.input_sanitizer import (
     log_security_event,
     escape_for_display
 )
-from app.services.cve_collector import CVEDataCollector
+from app.services.cve_collector import CVEDataCollector, NVDLookupError
 from app.services.llm_service import get_llm_service, check_llm_status
 from app.core.sla_tracker import get_sla_tracker, SLAStatus
 
 router = APIRouter()
+
+# Fail closed: if NVD cannot be queried, say so. An upstream failure must
+# never be presented as "no vulnerabilities found".
+NVD_UNAVAILABLE_DETAIL = (
+    "CVE lookup failed: NVD is unavailable, so the result is unknown. "
+    "Please try again later."
+)
 logger = logging.getLogger(__name__)
 
 # OS to CPE mapping for accurate NVD queries
@@ -334,7 +341,11 @@ async def get_latest_cves(request: Request, limit: int = 5) -> CVEAnalyzeRespons
         browser_cves = []
 
         for i, keyword in enumerate(search_keywords[:2]):  # Limit to 2 searches
-            cves = await collector.fetch_by_keyword(keyword, limit=fetch_limit)
+            try:
+                cves = await collector.fetch_by_keyword(keyword, limit=fetch_limit)
+            except NVDLookupError as e:
+                logger.error(f"NVD lookup failed for {keyword!r}: {e}")
+                raise HTTPException(status_code=503, detail=NVD_UNAVAILABLE_DETAIL) from e
             # Tag CVEs with source type (first keyword is OS, second is browser)
             source_type = "os" if i == 0 else "browser"
             for cve in cves:
@@ -440,7 +451,11 @@ async def analyze_cves(request: Request, body: CVEAnalyzeRequest) -> CVEAnalyzeR
     search_keyword = OS_KEYWORD_MAPPING.get(detected_os_keyword, body.query) if detected_os_keyword else body.query
     logger.info(f"Searching NVD with CPE for: {search_keyword}")
 
-    nvd_cves = await collector.fetch_by_keyword(search_keyword, limit=body.limit * 2, years=3)
+    try:
+        nvd_cves = await collector.fetch_by_keyword(search_keyword, limit=body.limit * 2, years=3)
+    except NVDLookupError as e:
+        logger.error(f"NVD lookup failed for {search_keyword!r}: {e}")
+        raise HTTPException(status_code=503, detail=NVD_UNAVAILABLE_DETAIL) from e
 
     if nvd_cves:
         your_system_findings = _filter_and_sort_findings([

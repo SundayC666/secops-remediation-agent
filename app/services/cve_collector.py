@@ -16,6 +16,14 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 
+class NVDLookupError(Exception):
+    """Raised when NVD could not be queried.
+
+    Callers must never treat this as "no results": an upstream failure means
+    the answer is unknown, not that the system is clean (fail closed).
+    """
+
+
 # CPE mapping for common products
 # Format: keyword -> (vendor, product, cpe_type) or keyword -> list of (vendor, product, cpe_type)
 # cpe_type: 'o' = operating system, 'a' = application, 'h' = hardware
@@ -543,8 +551,7 @@ class CVEDataCollector:
                 # First, get total count
                 response = await client.get(self.NVD_API_URL, params=params, headers=headers)
                 if response.status_code != 200:
-                    logger.error(f"NVD API error: {response.status_code}")
-                    return []
+                    raise NVDLookupError(f"NVD returned HTTP {response.status_code}")
 
                 data = response.json()
                 total_results = data.get("totalResults", 0)
@@ -574,8 +581,9 @@ class CVEDataCollector:
                     response = await client.get(self.NVD_API_URL, params=params, headers=headers)
 
                     if response.status_code != 200:
-                        logger.warning(f"NVD API error at index {start_idx}: {response.status_code}")
-                        continue
+                        raise NVDLookupError(
+                            f"NVD returned HTTP {response.status_code} at index {start_idx}"
+                        )
 
                     data = response.json()
                     vulnerabilities = data.get("vulnerabilities", [])
@@ -594,8 +602,11 @@ class CVEDataCollector:
                     logger.info(f"NVD: scanned index {start_idx}, found {len(cves)} CVEs from {min_year}+")
                     await asyncio.sleep(rate_limit_delay)
 
+        except NVDLookupError:
+            raise
         except Exception as e:
-            logger.error(f"Error fetching from NVD: {e}")
+            # Timeouts, connection errors, bad JSON: still an NVD failure.
+            raise NVDLookupError(f"NVD request failed: {e}") from e
 
         return cves
 

@@ -202,7 +202,6 @@ class VersionTracker:
         return {
             "products": len(self.versions),
             "last_updated": self.last_updated.isoformat() if self.last_updated else None,
-            "cache_file": str(CACHE_FILE),
             "cache_exists": CACHE_FILE.exists()
         }
 

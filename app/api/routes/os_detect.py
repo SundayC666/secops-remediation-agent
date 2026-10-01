@@ -10,9 +10,11 @@ from pydantic import BaseModel
 
 from app.core.os_detector import detect_os_from_user_agent, detect_browser, OSInfo
 
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 router = APIRouter()
-
+limiter = Limiter(key_func=get_remote_address)
 
 class BrowserDetectResponse(BaseModel):
     """Response model for browser detection"""
@@ -31,6 +33,7 @@ class OSDetectResponse(BaseModel):
 
 
 @router.get("/os/detect", response_model=OSDetectResponse)
+@limiter.limit("60/minute")
 async def detect_os(request: Request) -> OSDetectResponse:
     """
     Detect the client's operating system and browser from User-Agent header

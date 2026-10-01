@@ -3,12 +3,16 @@ Health check endpoint
 Provides system status information
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from pydantic import BaseModel
 from datetime import datetime
 import time
 
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
 
 # Track startup time
 _startup_time = time.time()
@@ -23,7 +27,8 @@ class HealthResponse(BaseModel):
 
 
 @router.get("/health", response_model=HealthResponse)
-async def health_check():
+@limiter.limit("60/minute")
+async def health_check(request: Request):
     """
     Health check endpoint
 
